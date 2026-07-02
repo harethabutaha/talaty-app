@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>طلعتك — اكتشف طلعتك المثالية</title>
+  <meta name="description" content="اكتشف أفضل الأماكن للخروج في الأردن بناءً على مزاجك وميزانيتك">
+
+  <!-- PWA — Manifest & Theme -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#4361EE">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="طلعتك">
+  <link rel="apple-touch-icon" href="icon-192.png">
+
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-RKV092DKTG"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-RKV092DKTG');
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Background -->
+  <div class="bg-wrap" aria-hidden="true">
+    <div class="bg-blob bg-blob-1"></div>
+    <div class="bg-blob bg-blob-2"></div>
+    <div class="bg-blob bg-blob-3"></div>
+  </div>
+
+  <div class="page-inner">
+
+    <!-- ═══════════════════════════════════════════════════
+         شاشة الاكتشاف — Screen: Discover
+    ════════════════════════════════════════════════════ -->
+    <div class="screen is-active" id="screen-discover">
+
+    <!-- Top Bar: Profile Button + Logo Badge -->
+    <div class="header-topbar">
+      <!-- Profile Button — top-left -->
+      <button class="profile-btn" id="profile-btn" aria-label="الملف الشخصي">
+        <span class="profile-notif-dot" id="profile-notif-dot"></span>
+        <span class="profile-initials" id="profile-btn-initials"></span>
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.8"/>
+          <path d="M4 20c0-4 3.58-7 8-7s8 3 8 7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+        </svg>
+      </button>
+
+      <!-- Logo Badge center -->
+      <div class="header-center">
+        <div class="logo-badge">✨ طلعتك — الأردن</div>
+      </div>
+
+      <!-- Balancing spacer -->
+      <div class="header-spacer" aria-hidden="true"></div>
+    </div>
+
+    <!-- Header body: title + subtitle -->
+    <header class="header-body">
+      <h1>وين تحب<br>تطلع اليوم؟</h1>
+      <p>5 أسئلة بس — وأحنا نلاقيلك طلعتك المثالية 🎯</p>
+    </header>
+
+    <!-- Step dots -->
+    <div class="steps" id="steps" aria-hidden="true">
+      <div class="step-dot active" id="dot-0"></div>
+      <div class="step-dot" id="dot-1"></div>
+      <div class="step-dot" id="dot-2"></div>
+      <div class="step-dot" id="dot-3"></div>
+      <div class="step-dot" id="dot-4"></div>
+    </div>
+
+    <!-- Travel Mode Toggle — segmented control -->
+    <div class="section">
+      <div class="travel-toggle-wrap" role="group" aria-label="نوع الطلعة">
+        <button class="travel-toggle-btn active" id="toggle-local" data-mode="local" type="button">
+          <span class="travel-toggle-emoji">🇯🇴</span>
+          طلعة محلية
+        </button>
+        <button class="travel-toggle-btn" id="toggle-travel" data-mode="travel" type="button">
+          <span class="travel-toggle-emoji">✈️</span>
+          سفر للخارج
+        </button>
+        <div class="travel-toggle-thumb" id="travel-toggle-thumb" aria-hidden="true"></div>
+      </div>
+    </div>
+
+    <!-- Filter 0: City — horizontal scrollable pill bar -->
+    <div class="section" id="city-filter-section">
+      <div class="filter-card city-bar-card" id="card-0">
+        <div class="filter-label">
+          <span class="icon">🗺️</span>
+          وين أنت هلأ؟
+        </div>
+        <div class="city-bar-scroll" role="group" aria-label="اختر مدينتك">
+          <button class="city-pill active" data-group="city" data-val="عمّان">
+            <span class="city-pill-emoji">🌆</span>
+            <span class="city-pill-name">عمّان</span>
+          </button>
+          <button class="city-pill" data-group="city" data-val="إربد">
+            <span class="city-pill-emoji">🎓</span>
+            <span class="city-pill-name">إربد</span>
+          </button>
+          <button class="city-pill" data-group="city" data-val="العقبة">
+            <span class="city-pill-emoji">🤿</span>
+            <span class="city-pill-name">العقبة</span>
+          </button>
+          <button class="city-pill" data-group="city" data-val="البحر الميت">
+            <span class="city-pill-emoji">💧</span>
+            <span class="city-pill-name">البحر الميت</span>
+          </button>
+          <button class="city-pill" data-group="city" data-val="السلط">
+            <span class="city-pill-emoji">🏛️</span>
+            <span class="city-pill-name">السلط</span>
+          </button>
+          <button class="city-pill" data-group="city" data-val="جرش">
+            <span class="city-pill-emoji">🏺</span>
+            <span class="city-pill-name">جرش</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filter 1: Budget — stepped range slider -->
+    <div class="section">
+      <div class="filter-card" id="card-1">
+        <div class="filter-label">
+          <span class="icon">💰</span>
+          <span id="budget-question-text">كم ميزانيتك؟</span>
+        </div>
+
+        <!-- Dynamic label — updates as slider moves -->
+        <div class="budget-label-wrap">
+          <span class="budget-label-text" id="budget-label-text">اختر ميزانيتك</span>
+          <span class="budget-label-badge" id="budget-label-badge"></span>
+        </div>
+
+        <!-- Stepped slider: 4 steps (0=مجاني 1=أقل من 5 2=5-15 3=+15) -->
+        <div class="slider-wrap budget-slider-wrap">
+          <input
+            type="range"
+            id="budget-slider"
+            min="0" max="3" value="0" step="1"
+            aria-label="الميزانية"
+            aria-valuetext="مجاني"
+          />
+          <!-- Tick marks aligned to steps -->
+          <div class="budget-ticks" aria-hidden="true">
+            <span id="tick-0">مجاني</span>
+            <span id="tick-1">اقتصادي</span>
+            <span id="tick-2">معتدل</span>
+            <span id="tick-3">فاخر</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filter 2: Time -->
+    <div class="section" id="time-filter-section">
+      <div class="filter-card" id="card-2">
+        <div class="filter-label">
+          <span class="icon">
+            <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:18px;height:18px;display:inline-block;vertical-align:middle" aria-hidden="true">
+              <circle cx="10" cy="10" r="7.5" stroke="currentColor" stroke-width="1.6"/>
+              <path d="M10 6v4l2.5 2.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </span>
+          وقت الطلعة؟
+        </div>
+        <div class="chip-group time-chip-group">
+          <button class="chip time-chip" data-group="time" data-val="morning">
+            <span class="time-chip-icon">
+              <svg viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <circle cx="11" cy="11" r="4" stroke="currentColor" stroke-width="1.6"/>
+                <path d="M11 3v2M11 17v2M3 11h2M17 11h2M5.22 5.22l1.42 1.42M15.36 15.36l1.42 1.42M5.22 16.78l1.42-1.42M15.36 6.64l1.42-1.42" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+              </svg>
+            </span>
+            صباحي
+          </button>
+          <button class="chip time-chip" data-group="time" data-val="evening">
+            <span class="time-chip-icon">
+              <svg viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <path d="M18.5 14A7.5 7.5 0 018 3.5a.5.5 0 00-.65-.48A9 9 0 1019 15a.5.5 0 00-.48-.65A7.5 7.5 0 0118.5 14z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </span>
+            مسائي
+          </button>
+          <button class="chip time-chip" data-group="time" data-val="night">
+            <span class="time-chip-icon">
+              <svg viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <path d="M11 2L13.09 8.26L19.5 8.27L14.28 12.14L16.38 18.4L11 14.54L5.62 18.4L7.72 12.14L2.5 8.27L8.91 8.26L11 2z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </span>
+            سهرة
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filter 3: Mood -->
+    <div class="section">
+      <div class="filter-card" id="card-3">
+        <div class="filter-label">
+          <span class="icon">🎭</span>
+          كيف مزاجك اليوم؟
+        </div>
+        <div class="mood-grid">
+          <!-- أدرينالين: lightning bolt -->
+          <button class="mood-btn" data-group="mood" data-val="أدرينالين">
+            <svg class="mood-icon" viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path d="M14.5 3L5 15h8l-1.5 8 9.5-12h-8L14.5 3z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            أدرينالين
+          </button>
+          <!-- استرخاء: leaf / calm -->
+          <button class="mood-btn" data-group="mood" data-val="استرخاء">
+            <svg class="mood-icon" viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path d="M13 22c0 0-8-4.5-8-11a8 8 0 0116 0c0 6.5-8 11-8 11z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M13 22V11" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+            </svg>
+            استرخاء
+          </button>
+          <!-- اجتماعي: people -->
+          <button class="mood-btn" data-group="mood" data-val="اجتماعي">
+            <svg class="mood-icon" viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <circle cx="9" cy="8" r="3" stroke="currentColor" stroke-width="1.8"/>
+              <circle cx="17" cy="8" r="3" stroke="currentColor" stroke-width="1.8"/>
+              <path d="M3 21c0-3.314 2.686-6 6-6h8c3.314 0 6 2.686 6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+            </svg>
+            اجتماعي
+          </button>
+          <!-- ثقافي: book -->
+          <button class="mood-btn" data-group="mood" data-val="ثقافي">
+            <svg class="mood-icon" viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path d="M4 5h12a2 2 0 012 2v12a2 2 0 01-2 2H4V5z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M18 5h2a2 2 0 012 2v12a2 2 0 01-2 2h-2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+              <path d="M8 10h6M8 14h4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+            </svg>
+            ثقافي
+          </button>
+          <!-- رومانسي: heart -->
+          <button class="mood-btn" data-group="mood" data-val="رومانسي">
+            <svg class="mood-icon" viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path d="M13 21.5S3.5 16 3.5 9.5a5 5 0 019.5-2.2A5 5 0 0122.5 9.5C22.5 16 13 21.5 13 21.5z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            رومانسي
+          </button>
+          <!-- مغامرة: mountain -->
+          <button class="mood-btn" data-group="mood" data-val="مغامرة">
+            <svg class="mood-icon" viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path d="M2 21L10 7l4 7 3-4 7 11H2z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+              <circle cx="19" cy="6" r="2" stroke="currentColor" stroke-width="1.8"/>
+            </svg>
+            مغامرة
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filter 4: Distance -->
+    <div class="section" id="distance-filter-section">
+      <div class="filter-card" id="card-4">
+        <div class="filter-label">
+          <span class="icon">📍</span>
+          المسافة المسموحة؟
+        </div>
+        <div class="distance-display">
+          <div class="km" id="km-val">10</div>
+          <div class="unit">كيلومتر منك</div>
+        </div>
+        <div class="slider-wrap">
+          <input type="range" id="distance" min="1" max="50" value="10" step="1"
+                 aria-label="المسافة بالكيلومتر" />
+        </div>
+        <div class="distance-ticks">
+          <span>1 كم</span>
+          <span>25 كم</span>
+          <span>50 كم</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- CTA -->
+    <div class="cta-wrap">
+      <button class="cta-btn" id="discover-btn" aria-label="اكتشف طلعتك المثالية">
+        <div class="cta-inner">
+          اكتشف طلعتك
+          <svg class="cta-arrow" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path d="M4 10h12M10 4l6 6-6 6" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+      </button>
+    </div>
+
+    <p class="footer-hint">هذه نسخة أولية — الاقتراحات ستكون ذكية أكثر قريباً 🚀</p>
+
+    </div><!-- /screen-discover -->
+
+    <!-- ═══════════════════════════════════════════════════
+         شاشة المفضلة — Screen: Saved
+    ════════════════════════════════════════════════════ -->
+    <div class="screen" id="screen-saved">
+      <div class="screen-header">
+        <h2 class="screen-title">مفضلتي</h2>
+        <p class="screen-sub">الأماكن التي أعجبتك تظهر هنا</p>
+      </div>
+      <div class="screen-empty">
+        <svg class="screen-empty-icon" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <circle cx="32" cy="32" r="28" stroke="currentColor" stroke-width="2"/>
+          <path d="M32 44S16 36 16 24a10 10 0 0119-4.47A10 10 0 0148 24c0 12-16 20-16 20z"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <p class="screen-empty-title">لا يوجد مفضلات بعد</p>
+        <p class="screen-empty-desc">اكتشف مكاناً واضغط على القلب لحفظه هنا</p>
+      </div>
+    </div><!-- /screen-saved -->
+
+    <!-- ═══════════════════════════════════════════════════
+         شاشة المحفظة — Screen: Wallet
+    ════════════════════════════════════════════════════ -->
+    <div class="screen" id="screen-wallet">
+      <div class="screen-header">
+        <h2 class="screen-title">المحفظة</h2>
+        <p class="screen-sub">كوبوناتك وعروضك الحصرية</p>
+      </div>
+      <!-- Empty State — مخفي عند وجود بطاقات -->
+      <div class="screen-empty" id="wallet-empty">
+        <svg class="screen-empty-icon" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <rect x="4" y="14" width="56" height="36" rx="6" stroke="currentColor" stroke-width="2"/>
+          <path d="M4 26h56" stroke="currentColor" stroke-width="2"/>
+          <circle cx="18" cy="38" r="3" stroke="currentColor" stroke-width="2"/>
+          <path d="M28 38h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <p class="screen-empty-title">محفظتك فارغة</p>
+        <p class="screen-empty-desc">اكتشف مكاناً واضغط «احفظ في المحفظة» للحصول على كود خصم حصري</p>
+      </div>
+      <!-- Wallet Cards List — مخفي عند فراغ المحفظة -->
+      <div class="wallet-list" id="wallet-list" style="display:none"></div>
+    </div><!-- /screen-wallet -->
+
+    <!-- ═══════════════════════════════════════════════════
+         شاشة الإعدادات — Screen: Settings
+    ════════════════════════════════════════════════════ -->
+    <div class="screen" id="screen-settings">
+      <div class="screen-header">
+        <h2 class="screen-title">الإعدادات</h2>
+        <p class="screen-sub">خصّص تجربتك وشاركنا أفكارك</p>
+      </div>
+
+      <div class="settings-body">
+
+        <!-- ── صندوق الاقتراحات ── -->
+        <p class="settings-section-label">صندوق الاقتراحات</p>
+        <div class="settings-card">
+          <div class="settings-card-title">
+            <span class="s-icon s-icon-blue">
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"
+                      stroke="currentColor" stroke-width="1.8"
+                      stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </span>
+            شاركنا اقتراحك
+          </div>
+          <p class="settings-card-desc">عندك مكان مميز أو فكرة تطوير؟ نبي نسمعك!</p>
+          <textarea
+            class="suggestions-textarea"
+            id="suggestions-textarea"
+            placeholder="عندك مكان رهيب أو فكرة للتطبيق؟ شاركنا..."
+            maxlength="500"
+            aria-label="صندوق الاقتراحات"
+          ></textarea>
+          <button class="settings-btn settings-btn-primary" id="suggestions-submit-btn">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path d="M22 2L11 13" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M22 2L15 22 11 13 2 9l20-7z" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            إرسال
+          </button>
+        </div>
+
+        <!-- ── إدارة المحفظة ── -->
+        <p class="settings-section-label">المحفظة</p>
+        <div class="settings-card">
+          <div class="settings-card-title">
+            <span class="s-icon s-icon-coral">
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <polyline points="3 6 5 6 21 6" stroke="currentColor" stroke-width="1.8"
+                          stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"
+                      stroke="currentColor" stroke-width="1.8"
+                      stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M10 11v6M14 11v6" stroke="currentColor" stroke-width="1.8"
+                      stroke-linecap="round"/>
+                <path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2" stroke="currentColor"
+                      stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </span>
+            تفريغ المحفظة
+          </div>
+          <p class="settings-card-desc">حذف جميع الكوبونات والأماكن المحفوظة بشكل نهائي.</p>
+          <button class="settings-btn settings-btn-danger" id="clear-wallet-btn">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <polyline points="3 6 5 6 21 6" stroke="currentColor" stroke-width="1.8"
+                        stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"
+                    stroke="currentColor" stroke-width="1.8"
+                    stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            تفريغ المحفظة الآن
+          </button>
+        </div>
+
+        <!-- ── معلومات التطبيق ── -->
+        <p class="settings-section-label">عن التطبيق</p>
+        <div class="settings-card">
+          <div class="settings-card-title">
+            <span class="s-icon s-icon-teal">
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/>
+                <path d="M12 8h.01M11 12h1v4h1" stroke="currentColor" stroke-width="1.8"
+                      stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </span>
+            معلومات التطبيق
+          </div>
+          <div style="margin-top:10px;">
+            <div class="app-info-row">
+              <span class="app-info-key">إصدار التطبيق</span>
+              <span class="app-info-badge">MVP v2.0</span>
+            </div>
+            <div class="app-info-row">
+              <span class="app-info-key">المنطقة</span>
+              <span class="app-info-val">الأردن 🇯🇴</span>
+            </div>
+            <div class="app-info-row">
+              <span class="app-info-key">اللغة</span>
+              <span class="app-info-val">العربية</span>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /settings-body -->
+    </div><!-- /screen-settings -->
+
+    <!-- ═══════════════════════════════════════════════════
+         شاشة الملف الشخصي — Screen: Profile
+    ════════════════════════════════════════════════════ -->
+    <div class="screen" id="screen-profile">
+
+      <!-- Avatar Hero -->
+      <div class="profile-avatar-section">
+        <div class="profile-avatar-ring" id="profile-avatar-ring">
+          <!-- Default SVG icon -->
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.8"/>
+            <path d="M4 20c0-4 3.58-7 8-7s8 3 8 7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+          </svg>
+          <!-- Shown when name is set -->
+          <span class="profile-big-initials" id="profile-big-initials"></span>
+          <!-- Edit badge -->
+          <span class="profile-edit-badge" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </span>
+        </div>
+        <p class="profile-avatar-name" id="profile-avatar-name">مستخدم طلعتك</p>
+        <p class="profile-avatar-tag">عضو منذ اليوم 🎉</p>
+      </div>
+
+      <!-- Stats Row -->
+      <div class="profile-stats-row" style="padding: 0 18px;">
+        <div class="profile-stat-card">
+          <div class="profile-stat-num" id="stat-wallet-count">0</div>
+          <div class="profile-stat-label">كوبون محفوظ في المحفظة</div>
+        </div>
+        <div class="profile-stat-card">
+          <div class="profile-stat-num" id="stat-discover-count">0</div>
+          <div class="profile-stat-label">طلعة اكتُشفت معنا</div>
+        </div>
+      </div>
+
+      <!-- Form Card -->
+      <div class="profile-body">
+        <div class="profile-form-card" style="margin-top: 16px;">
+
+          <!-- Section label -->
+          <p class="settings-section-label" style="margin-bottom:4px;">بياناتك الشخصية</p>
+
+          <!-- Full name -->
+          <div class="profile-field">
+            <label class="profile-field-label" for="profile-name-input">الاسم الكامل</label>
+            <input
+              class="profile-input"
+              id="profile-name-input"
+              type="text"
+              placeholder="أدخل اسمك هنا..."
+              maxlength="60"
+              autocomplete="name"
+              aria-label="الاسم الكامل"
+            />
+          </div>
+
+          <div class="profile-divider"></div>
+
+          <!-- Country / Nationality -->
+          <div class="profile-field">
+            <label class="profile-field-label" for="profile-country-select">الدولة / الجنسية</label>
+            <div class="profile-select-wrap">
+              <select
+                class="profile-input profile-select"
+                id="profile-country-select"
+                aria-label="الدولة / الجنسية"
+              >
+                <option value="" disabled selected>اختر دولتك...</option>
+                <option value="الأردن">🇯🇴 الأردن</option>
+                <option value="فلسطين">🇵🇸 فلسطين</option>
+                <option value="مصر">🇪🇬 مصر</option>
+                <option value="السعودية">🇸🇦 السعودية</option>
+                <option value="الإمارات">🇦🇪 الإمارات</option>
+                <option value="الكويت">🇰🇼 الكويت</option>
+                <option value="قطر">🇶🇦 قطر</option>
+                <option value="البحرين">🇧🇭 البحرين</option>
+                <option value="عُمان">🇴🇲 عُمان</option>
+                <option value="سوريا">🇸🇾 سوريا</option>
+                <option value="العراق">🇮🇶 العراق</option>
+                <option value="لبنان">🇱🇧 لبنان</option>
+                <option value="اليمن">🇾🇪 اليمن</option>
+                <option value="ليبيا">🇱🇾 ليبيا</option>
+                <option value="تونس">🇹🇳 تونس</option>
+                <option value="الجزائر">🇩🇿 الجزائر</option>
+                <option value="المغرب">🇲🇦 المغرب</option>
+                <option value="أخرى">🌍 أخرى</option>
+              </select>
+            </div>
+          </div>
+
+        </div><!-- /profile-form-card -->
+
+        <!-- Save button -->
+        <button class="profile-save-btn" id="profile-save-btn">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M17 21v-8H7v8M7 3v5h8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          حفظ التغييرات
+        </button>
+
+        <!-- ── إحصائياتي — Gamification Stats ── -->
+        <p class="settings-section-label" style="margin-top:24px;">إحصائياتي</p>
+        <div class="gami-stats-grid">
+
+          <!-- Card 1: Total Discovered -->
+          <div class="gami-stat-card">
+            <div class="gami-stat-icon gami-icon-blue">
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="1.8"/>
+                <path d="M16.5 16.5L21 21" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+              </svg>
+            </div>
+            <div class="gami-stat-num" id="gami-discover-count">0</div>
+            <div class="gami-stat-label">طلعات اكتشفتها</div>
+          </div>
+
+          <!-- Card 2: Places Visited -->
+          <div class="gami-stat-card">
+            <div class="gami-stat-icon gami-icon-teal">
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <div class="gami-stat-num" id="gami-visited-count">0</div>
+            <div class="gami-stat-label">أماكن زرتها</div>
+          </div>
+
+          <!-- Card 3: Rank -->
+          <div class="gami-stat-card gami-rank-card">
+            <div class="gami-stat-icon gami-icon-gold">
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <path d="M8 21h8M12 17v4M7 4h10l-1 8a4 4 0 01-8 0L7 4z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M7 6H4a1 1 0 00-1 1c0 2.5 2 4 4 4M17 6h3a1 1 0 011 1c0 2.5-2 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <div class="gami-stat-rank" id="gami-rank-text">مكتشف مبتدئ</div>
+            <div class="gami-stat-label">الرتبة</div>
+          </div>
+
+        </div><!-- /gami-stats-grid -->
+
+      </div><!-- /profile-body -->
+
+    </div><!-- /screen-profile -->
+
+  </div><!-- /page-inner -->
+
+  <!-- ═══════════════════════════════════════════════════
+       Toast Notification
+  ════════════════════════════════════════════════════ -->
+  <div class="toast" id="global-toast" role="status" aria-live="polite"></div>
+
+  <!-- ═══════════════════════════════════════════════════
+       Bottom Sheet — النتيجة المنزلقة
+  ════════════════════════════════════════════════════ -->
+  <div class="bottom-sheet-overlay" id="sheet-overlay"></div>
+
+  <div class="bottom-sheet" id="bottom-sheet" role="dialog"
+       aria-modal="true" aria-label="نتيجة اقتراحك">
+    <div class="drag-handle" aria-hidden="true"></div>
+    <button class="close-sheet" id="close-sheet-btn" aria-label="إغلاق">✕</button>
+
+    <div class="sheet-content">
+
+      <!-- AI Thinking Skeleton — shown during loading -->
+      <div class="sheet-skeleton" id="sheet-skeleton">
+        <div class="ai-thinking-text" id="ai-thinking-box">
+          <span class="ai-cycle-text" id="ai-cycle-text">جاري تحليل مزاجك...</span>
+          <span class="ai-dots" aria-hidden="true">
+            <span></span><span></span><span></span>
+          </span>
+        </div>
+        <div class="skel-line skel-title"></div>
+        <div class="skel-line skel-sub"></div>
+        <div class="skel-line skel-sub-2"></div>
+        <div class="skel-pills">
+          <div class="skel-pill"></div>
+          <div class="skel-pill"></div>
+          <div class="skel-pill"></div>
+        </div>
+        <div class="skel-box"></div>
+      </div>
+
+      <!-- No-match fallback card -->
+      <div class="no-match-card" id="no-match-card">
+        <div class="no-match-icon">🔍</div>
+        <p class="no-match-title">بحثنا في كل مكان!</p>
+        <p class="no-match-desc">لا يوجد تطابق 100% لمعاييرك الدقيقة جداً. جرّب تغيير الميزانية أو الوقت وسيبهرك الذكاء الاصطناعي.</p>
+        <p class="no-match-tip">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v4h1"/></svg>
+          الفلتر الصارم يضمن لك دقة أعلى في التوصيات
+        </p>
+      </div>
+
+      <div class="result-card show" id="result-card" role="region" aria-label="نتيجة اقتراحك">
+        <div class="result-eyebrow">
+          <span class="result-badge" id="res-badge-text">🎯 اقتراحك المثالي</span>
+          <span class="result-city-tag" id="res-city-tag"></span>
+        </div>
+        <div class="result-title" id="res-title">—</div>
+        <div class="result-desc"  id="res-desc">—</div>
+        <div class="result-pills" id="res-pills"></div>
+
+        <!-- Discount -->
+        <div class="discount-box">
+          <div class="discount-label">🎁 كود الخصم الحصري</div>
+          <div class="discount-code-row">
+            <span class="discount-code" id="res-discount-code">TALATY10</span>
+            <button class="copy-btn" id="copy-btn">نسخ</button>
+          </div>
+          <div class="discount-note" id="res-discount-note">وفّر 10% على أول زيارة لك!</div>
+        </div>
+
+        <!-- Maps -->
+        <a class="maps-btn" id="res-maps-btn" href="#" target="_blank" rel="noopener noreferrer">
+          <span>اذهب إلى هناك</span>
+          <span class="map-icon" aria-hidden="true">🗺️</span>
+        </a>
+
+        <!-- Action Buttons Row: Wallet + WhatsApp -->
+        <div class="result-actions-row">
+
+          <!-- Save to Wallet -->
+          <button class="save-wallet-btn" id="save-wallet-btn" aria-label="احفظ في المحفظة">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <rect x="1" y="4" width="22" height="16" rx="3" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+              <path d="M1 10h22" stroke="currentColor" stroke-width="1.8"/>
+              <circle cx="7.5" cy="15" r="1.2" fill="currentColor"/>
+              <path d="M12 15h5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+            </svg>
+            احفظ في المحفظة
+          </button>
+
+          <!-- Share on WhatsApp -->
+          <button class="whatsapp-btn" id="whatsapp-share-btn" aria-label="شارك على واتساب">
+            <!-- Official WhatsApp icon path -->
+            <svg class="wa-icon" viewBox="0 0 24 24" fill="currentColor"
+                 xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path d="M20.52 3.48A11.93 11.93 0 0 0 12 0C5.37 0 0 5.37 0 12c0 2.11.55 4.17 1.6 5.97L0 24l6.22-1.57A11.95 11.95 0 0 0 12 24c6.63 0 12-5.37 12-12 0-3.2-1.25-6.22-3.48-8.52zM12 22c-1.85 0-3.66-.5-5.24-1.43l-.37-.22-3.87.98.99-3.77-.24-.38A9.94 9.94 0 0 1 2 12C2 6.48 6.48 2 12 2c2.66 0 5.16 1.04 7.04 2.92A9.93 9.93 0 0 1 22 12c0 5.52-4.48 10-10 10zm5.47-7.3c-.3-.15-1.77-.87-2.04-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.17-.17.2-.35.22-.65.07a8.16 8.16 0 0 1-2.4-1.48 9.01 9.01 0 0 1-1.66-2.07c-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.07-.15-.67-1.61-.92-2.2-.24-.58-.49-.5-.67-.51l-.57-.01c-.2 0-.52.07-.79.37-.27.3-1.04 1.01-1.04 2.47 0 1.46 1.06 2.87 1.21 3.07.15.2 2.09 3.19 5.06 4.47.71.3 1.26.49 1.69.62.71.23 1.36.2 1.87.12.57-.09 1.77-.72 2.02-1.42.25-.7.25-1.3.17-1.42-.07-.12-.27-.2-.57-.35z"/>
+            </svg>
+            شارك الطلعة مع أصحابك
+          </button>
+
+        </div><!-- /result-actions-row -->
+      </div>
+    </div>
+  </div><!-- /bottom-sheet -->
+
+  <!-- ═══════════════════════════════════════════════════
+       شريط التنقل السفلي — Bottom Navigation Bar
+  ════════════════════════════════════════════════════ -->
+  <nav class="bottom-nav" role="navigation" aria-label="التنقل الرئيسي">
+
+    <!-- زر الاكتشاف -->
+    <button class="nav-item is-active"
+            data-target="screen-discover"
+            aria-label="اكتشف"
+            aria-current="page">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none"
+           xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="1.8"/>
+        <path d="M16.5 16.5L21 21" stroke="currentColor" stroke-width="1.8"
+              stroke-linecap="round"/>
+        <path d="M11 8v3m0 0v3m0-3h3m-3 0H8" stroke="currentColor"
+              stroke-width="1.8" stroke-linecap="round"/>
+      </svg>
+      <span class="nav-label">اكتشف</span>
+      <div class="nav-dot"></div>
+    </button>
+
+    <!-- زر المفضلة -->
+    <button class="nav-item"
+            data-target="screen-saved"
+            aria-label="مفضلتي">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none"
+           xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"
+              stroke="currentColor" stroke-width="1.8"
+              stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span class="nav-label">مفضلتي</span>
+      <div class="nav-dot"></div>
+    </button>
+
+    <!-- زر المحفظة -->
+    <button class="nav-item"
+            data-target="screen-wallet"
+            aria-label="المحفظة">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none"
+           xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <rect x="1" y="4" width="22" height="16" rx="3"
+              stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+        <path d="M1 10h22" stroke="currentColor" stroke-width="1.8"/>
+        <circle cx="7.5" cy="15" r="1.2" fill="currentColor"/>
+        <path d="M12 15h5" stroke="currentColor" stroke-width="1.8"
+              stroke-linecap="round"/>
+      </svg>
+      <span class="nav-label">المحفظة</span>
+      <div class="nav-dot"></div>
+    </button>
+
+    <!-- زر الإعدادات -->
+    <button class="nav-item"
+            data-target="screen-settings"
+            aria-label="الإعدادات">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none"
+           xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.8"/>
+        <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"
+              stroke="currentColor" stroke-width="1.8"
+              stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span class="nav-label">الإعدادات</span>
+      <div class="nav-dot"></div>
+    </button>
+
+  </nav><!-- /bottom-nav -->
+
+  <!-- PapaParse — robust CSV-to-JSON parsing for Google Sheets CMS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+
+  <script src="script.js"></script>
+
+  <!-- PWA — Service Worker Registration -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function () {
+        navigator.serviceWorker
+          .register('./sw.js', { scope: './' })
+          .then(function (reg) {
+            console.log('[Talaty SW] Registered. Scope:', reg.scope);
+          })
+          .catch(function (err) {
+            console.warn('[Talaty SW] Registration failed:', err);
+          });
+      });
+    }
+  </script>
+</body>
+</html>

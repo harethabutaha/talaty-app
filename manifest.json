@@ -1,0 +1,38 @@
+{
+  "name": "تطبيق طلعتك",
+  "short_name": "طلعتك",
+  "description": "اكتشف أفضل الأماكن للخروج في الأردن بناءً على مزاجك وميزانيتك",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#F0F2F8",
+  "theme_color": "#4361EE",
+  "dir": "rtl",
+  "lang": "ar",
+  "categories": ["lifestyle", "entertainment", "travel"],
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "اكتشف طلعتك",
+      "short_name": "اكتشف",
+      "description": "ابدأ بالاكتشاف مباشرةً",
+      "url": "./index.html",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}

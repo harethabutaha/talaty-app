@@ -1,0 +1,58 @@
+[
+  {
+    "id": "amm-001",
+    "city": ["عمّان"],
+    "mood": ["أدرينالين"],
+    "budget": ["5-15 دينار", "15+ دينار"],
+    "time": ["evening", "night"],
+    "audience": ["local", "both"],
+    "title": "Rush Escape Rooms — العبدلي",
+    "desc": "غرف هروب بمستويات تحدٍّ متفاوتة في منطقة العبدلي. أدرينالين حقيقي لمدة 60 دقيقة مع الأصحاب — الحجز المسبق مستحسن.",
+    "pills": ["🔐 غرفة هروب", "👥 فريق", "⏱️ 60 دقيقة"],
+    "mapQuery": "Rush Escape Rooms Amman Jordan",
+    "discount": "TALATY10",
+    "discountNote": "وفّر 10% على حجزك!"
+  },
+  {
+    "id": "amm-002",
+    "city": ["عمّان"],
+    "mood": ["استرخاء"],
+    "budget": ["5-15 دينار", "15+ دينار"],
+    "time": ["morning", "evening"],
+    "audience": ["both"],
+    "title": "Books@Café — جبل عمّان",
+    "desc": "أشهر كافيه ثقافي في الأردن، الشارع الثالث، جبل عمّان. مكتبة ضخمة وإطلالة رائعة وأجواء هادئة لساعات طويلة.",
+    "pills": ["📚 مكتبة", "☕ مريح", "🌿 راقٍ"],
+    "mapQuery": "Books@Cafe Jabal Amman Jordan",
+    "discount": "TALATY10",
+    "discountNote": "وفّر 10% على مشروبك الأول!"
+  },
+  {
+    "id": "irb-001",
+    "city": ["إربد"],
+    "mood": ["ثقافي"],
+    "budget": ["مجاني", "أقل من 5 دنانير"],
+    "time": ["morning", "evening"],
+    "audience": ["both"],
+    "title": "متحف اليرموك للعلوم والآثار",
+    "desc": "متحف داخل حرم جامعة اليرموك يضم مجموعات أثرية ومعدنية نادرة. دخول رمزي أو مجاني لطلاب اليرموك.",
+    "pills": ["🏺 آثار", "🎓 جامعة", "🧠 معرفة"],
+    "mapQuery": "Yarmouk University Museum Irbid Jordan",
+    "discount": "TALATY10",
+    "discountNote": "دخول مجاني لطلاب اليرموك!"
+  },
+  {
+    "id": "aqb-001",
+    "city": ["العقبة"],
+    "mood": ["مغامرة"],
+    "budget": ["15+ دينار"],
+    "time": ["morning"],
+    "audience": ["tourist"],
+    "title": "Dive Aqaba — غوص في البحر الأحمر",
+    "desc": "العقبة من أفضل 10 وجهات غوص في العالم! مراكز الغوص المتعددة تقدم دروساً للمبتدئين وغطسات متقدمة.",
+    "pills": ["🤿 غوص", "🐠 شعاب", "🌊 عالمي"],
+    "mapQuery": "Dive Aqaba scuba diving center Jordan",
+    "discount": "TALATY15",
+    "discountNote": "وفّر 15% على جلسة الغوص الأولى!"
+  }
+]
