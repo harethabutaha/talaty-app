@@ -527,9 +527,10 @@ function filterStrict(cityKey, moodKey, budgetKey, timeKey, audience) {
       return;
     }
 
-    /* --- time check (skipped in travel mode where timeKey is null) -- */
+    /* --- time check (skipped in travel mode where timeKey is null,
+           and bypassed if the place has no time data at all) -------- */
     if (nTime !== null) {
-      var timeOk = p.time.some(function(t) {
+      var timeOk = (!p.time || p.time.length === 0) ? true : p.time.some(function(t) {
         return normaliseStr(t) === nTime;
       });
       if (!timeOk) {
@@ -543,8 +544,8 @@ function filterStrict(cityKey, moodKey, budgetKey, timeKey, audience) {
       }
     }
 
-    /* --- audience check -------------------------------------------- */
-    var audienceOk = p.audience.some(function(a) {
+    /* --- audience check (bypassed if the place has no audience data) */
+    var audienceOk = (!p.audience || p.audience.length === 0) ? true : p.audience.some(function(a) {
       var na = normaliseStr(AUDIENCE_SYNONYMS[normaliseStr(a)] || a);
       return na === nAudience || na === 'both';
     });
