@@ -35,6 +35,10 @@ const BUDGETS = ['مجاني', 'أقل من 5 دنانير', '5-15 دينار', 
    File → Share → Publish to web → select sheet → CSV → copy link */
 const GOOGLE_SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTtEK0jPMEdAJYXPNwFs21UgDNZh6OUORX-JAgUW9rt59SNmWPjnXx3wPBfWkHn21bH2eWOZVsnAp7t/pub?output=csv";
 
+/* ── Travel Engine v4.0 — Google Sheets (Sheet 2 / same file, second tab) ──
+   ✅ الرابط معبأ. لو حبيت تغيّره لاحقاً، استبدل القيمة أدناه فقط. */
+const GOOGLE_SHEET_TRAVEL_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTtEK0jPMEdAJYXPNwFs21UgDNZh6OUORX-JAgUW9rt59SNmWPjnXx3wPBfWkHn21bH2eWOZVsnAp7t/pub?gid=2131725278&single=true&output=csv";
+
 /* ══════════════════════════════════════════════════════════════
    GLOBAL STATE — populated asynchronously by loadPlacesDatabase()
    `places`            → used by filterStrict() and every filter consumer
@@ -249,162 +253,234 @@ function showToastSafe(message, type, duration) {
 }
 
 /* Kick off the fetch/parse as soon as the DOM is ready */
-document.addEventListener('DOMContentLoaded', loadPlacesDatabase);
+document.addEventListener('DOMContentLoaded', function() {
+  loadPlacesDatabase();   /* Sheet 1 — local places  */
+  loadTravelDatabase();   /* Sheet 2 — travel engine */
+});
 
 
 /* ══════════════════════════════════════════════════════════════
-   INTERNATIONAL TRAVEL DATABASE — "سفر للخارج" mode
+   INTERNATIONAL TRAVEL DATABASE — "سفر للخارج" mode  (v4.0)
    ─────────────────────────────────────────────────────────────
-   Each destination has:
-     title, desc
-     mood[]        → same mood vocabulary as local places
-     budget[]      → mapped to slider steps 0-3:
-                     0 = اقتصادي | 1 = متوسط | 2 = فخم | 3 = VIP
-     visaFreeFor[] → Arab nationalities that travel visa-free
-                     (or 'all' if visa-free / visa-on-arrival for everyone)
-     flag          → emoji flag for the result card
-     country       → display name of destination country
+   Destinations are now loaded dynamically from Google Sheets
+   (Sheet 2) via loadTravelDatabase(). Internal schema per row:
+     title, desc, country, flag, mapQuery
+     mood[]    → same vocabulary as local places
+     budget[]  → اقتصادي | متوسط | فخم | VIP
+     allowed[] → nationalities/countries permitted, or ['all']
+     pills[], discount, discountNote
+   If the sheet URL is a placeholder or the fetch fails, the app
+   falls back to TRAVEL_FALLBACK_DESTINATIONS so Travel Mode
+   never breaks.
 ══════════════════════════════════════════════════════════════ */
 const TRAVEL_BUDGETS = ['اقتصادي', 'متوسط', 'فخم', 'VIP'];
 
-const internationalDestinations = [
-  {
-    country: 'جورجيا', flag: '🇬🇪',
-    mood: ['مغامرة', 'استرخاء'], budget: ['اقتصادي', 'متوسط'],
-    visaFreeFor: ['all'],
-    title: 'تبليسي وكازبيغي — جورجيا',
-    desc: 'جبال القوقاز الخلابة، تبليسي القديمة بحماماتها الكبريتية، وقرية كازبيغي عند سفح الجبل المهيب. وجهة اقتصادية ومذهلة بصرياً.',
-    pills: ['🏔️ جبال', '♨️ حمامات', '🍷 نبيذ'],
-    discount: 'TALATY15', discountNote: 'وفّر 15% على باقة الطيران والفندق!'
-  },
-  {
-    country: 'تركيا', flag: '🇹🇷',
-    mood: ['اجتماعي', 'ثقافي'], budget: ['متوسط', 'فخم'],
-    visaFreeFor: ['all'],
-    title: 'إسطنبول — ملتقى القارتين',
-    desc: 'آيا صوفيا، البازار الكبير، والبوسفور الساحر. مدينة تجمع التاريخ العثماني بالحياة الحديثة على ضفتي القارتين.',
-    pills: ['🕌 عثماني', '🛍️ بازار', '🌉 بوسفور'],
-    mapQuery: 'Istanbul Turkey',
-    discount: 'TALATY10', discountNote: 'وفّر 10% على جولاتك السياحية!'
-  },
-  {
-    country: 'تركيا', flag: '🇹🇷',
-    mood: ['استرخاء', 'رومانسي'], budget: ['فخم', 'VIP'],
-    visaFreeFor: ['all'],
-    title: 'بودروم — الريفييرا التركية',
-    desc: 'شواطئ تركواز، يخوت فاخرة، ومنتجعات راقية على بحر إيجة. الوجهة المثالية لشهر العسل أو رحلة استرخاء فاخرة.',
-    pills: ['🛥️ يخوت', '🏖️ شواطئ', '✨ فاخر'],
-    discount: 'TALATY15', discountNote: 'وفّر 15% على إقامتك الفاخرة!'
-  },
-  {
-    country: 'جزر المالديف', flag: '🇲🇻',
-    mood: ['رومانسي', 'استرخاء'], budget: ['VIP'],
-    visaFreeFor: ['all'],
-    title: 'المالديف — فلل فوق الماء',
-    desc: 'فلل خشبية فاخرة فوق مياه فيروزية صافية. شهر عسل أو احتفال خاص لا يُنسى في واحدة من أجمل الجزر في العالم.',
-    pills: ['🏝️ فلل مائية', '🤿 غوص', '💎 VIP'],
-    discount: 'TALATY15', discountNote: 'وفّر 15% على إقامة الفلل الفاخرة!'
-  },
-  {
-    country: 'مصر', flag: '🇪🇬',
-    mood: ['ثقافي', 'مغامرة'], budget: ['اقتصادي', 'متوسط'],
-    visaFreeFor: ['الأردن', 'السعودية', 'الإمارات', 'الكويت', 'قطر', 'البحرين', 'عُمان', 'فلسطين', 'لبنان'],
-    title: 'القاهرة والأقصر — أرض الفراعنة',
-    desc: 'أهرامات الجيزة، معابد الأقصر، ونهر النيل الخالد. رحلة في عمق الحضارة المصرية القديمة بأسعار اقتصادية مناسبة.',
-    pills: ['🔺 أهرامات', '🛶 نيل', '🏛️ معابد'],
-    discount: 'TALATY10', discountNote: 'وفّر 10% على جولة الأهرامات!'
-  },
-  {
-    country: 'مصر', flag: '🇪🇬',
-    mood: ['استرخاء', 'مغامرة'], budget: ['متوسط', 'فخم'],
-    visaFreeFor: ['الأردن', 'السعودية', 'الإمارات', 'الكويت', 'قطر', 'البحرين', 'عُمان', 'فلسطين', 'لبنان'],
-    title: 'الغردقة وشرم الشيخ — البحر الأحمر',
-    desc: 'شعاب مرجانية عالمية، غوص استثنائي، ومنتجعات شاطئية. الوجهة المفضلة لمحبي البحر الأحمر من العرب.',
-    pills: ['🤿 غوص', '🐠 شعاب', '☀️ شمس'],
-    discount: 'TALATY10', discountNote: 'وفّر 10% على باقة الغوص!'
-  },
-  {
-    country: 'لبنان', flag: '🇱🇧',
-    mood: ['اجتماعي', 'رومانسي'], budget: ['متوسط', 'فخم'],
-    visaFreeFor: ['الأردن', 'السعودية', 'الإمارات', 'الكويت', 'قطر', 'مصر'],
-    title: 'بيروت وجبل لبنان',
-    desc: 'حياة ليلية نابضة، مطاعم عالمية، وجبال خلابة على بعد دقائق من البحر. تجربة اجتماعية وثقافية لا تُضاهى.',
-    pills: ['🌃 حياة ليلية', '🍽️ مطاعم', '🏔️ جبال'],
-    discount: 'TALATY10', discountNote: 'وفّر 10% على حجز المطاعم!'
-  },
-  {
-    country: 'الإمارات', flag: '🇦🇪',
-    mood: ['أدرينالين', 'اجتماعي'], budget: ['فخم', 'VIP'],
-    visaFreeFor: ['all'],
-    title: 'دبي — مدينة المستقبل',
-    desc: 'برج خليفة، سفاري صحراوي، وأسواق فاخرة. مزيج من الإثارة العصرية والفخامة المطلقة في قلب الخليج.',
-    pills: ['🏙️ ناطحات سحاب', '🏜️ سفاري', '🛍️ تسوق فاخر'],
-    discount: 'TALATY15', discountNote: 'وفّر 15% على تذكرة برج خليفة!'
-  },
-  {
-    country: 'الإمارات', flag: '🇦🇪',
-    mood: ['ثقافي', 'استرخاء'], budget: ['متوسط', 'فخم'],
-    visaFreeFor: ['all'],
-    title: 'أبوظبي — جامع الشيخ زايد واللوفر',
-    desc: 'جامع الشيخ زايد المهيب ومتحف اللوفر أبوظبي. مزيج فريد بين الروحانية والفن العالمي في عاصمة الإمارات.',
-    pills: ['🕌 جامع', '🖼️ متحف', '✨ معماري'],
-    discount: 'TALATY10', discountNote: 'وفّر 10% على الجولات الثقافية!'
-  },
-  {
-    country: 'جورجيا', flag: '🇬🇪',
-    mood: ['ثقافي', 'اجتماعي'], budget: ['اقتصادي'],
-    visaFreeFor: ['all'],
-    title: 'باتومي — لؤلؤة البحر الأسود',
-    desc: 'مدينة ساحلية حديثة بحدائق نباتية ومطاعم على البحر الأسود. وجهة اقتصادية مليئة بالحياة والثقافة المعاصرة.',
-    pills: ['🌊 بحر أسود', '🌳 حدائق', '💰 اقتصادي'],
-    discount: 'TALATY10', discountNote: 'وفّر 10% على فندقك في باتومي!'
-  },
-  {
-    country: 'اليونان', flag: '🇬🇷',
-    mood: ['رومانسي', 'استرخاء'], budget: ['فخم', 'VIP'],
-    visaFreeFor: ['all'],
-    title: 'سانتوريني — جزيرة الغروب الذهبي',
-    desc: 'منازل بيضاء وقباب زرقاء فوق منحدرات بركانية، وغروب شمس أسطوري. الوجهة الرومانسية الأشهر في العالم.',
-    pills: ['🌅 غروب', '🏛️ يوناني', '💑 رومانسي'],
-    discount: 'TALATY15', discountNote: 'وفّر 15% على إقامتك المطلة على البحر!'
-  },
-  {
-    country: 'إندونيسيا', flag: '🇮🇩',
-    mood: ['استرخاء', 'مغامرة'], budget: ['متوسط', 'فخم'],
-    visaFreeFor: ['all'],
-    title: 'بالي — جزيرة الآلهة',
-    desc: 'معابد هندوسية، حقول أرز خضراء، وشواطئ استوائية. ملاذ روحي وطبيعي يجمع المغامرة بالاسترخاء التام.',
-    pills: ['🛕 معابد', '🌾 حقول أرز', '🏄 شواطئ'],
-    discount: 'TALATY10', discountNote: 'وفّر 10% على فيلتك في أوبود!'
-  },
-  {
-    country: 'السعودية', flag: '🇸🇦',
-    mood: ['مغامرة', 'ثقافي'], budget: ['متوسط', 'فخم'],
-    visaFreeFor: ['all'],
-    title: 'العُلا — متحف مفتوح في الصحراء',
-    desc: 'مدائن صالح الأثرية وتشكيلات صخرية عمرها آلاف السنين. وجهة سعودية جديدة تجمع التاريخ بالمغامرة الصحراوية.',
-    pills: ['🏜️ صحراء', '🗿 آثار', '🚙 مغامرة'],
-    discount: 'TALATY10', discountNote: 'وفّر 10% على جولة مدائن صالح!'
-  },
-  {
-    country: 'قبرص', flag: '🇨🇾',
-    mood: ['استرخاء', 'اجتماعي'], budget: ['متوسط'],
-    visaFreeFor: ['all'],
-    title: 'ليماسول — شواطئ المتوسط',
-    desc: 'شواطئ متوسطية صافية ومدينة قديمة نابضة بالحياة. وجهة قريبة ومريحة للهروب القصير من صخب الحياة.',
-    pills: ['🏖️ شواطئ', '🍴 مأكولات', '😌 استرخاء'],
-    discount: 'TALATY10', discountNote: 'وفّر 10% على باقة الإقامة!'
-  },
-  {
-    country: 'المغرب', flag: '🇲🇦',
-    mood: ['ثقافي', 'مغامرة'], budget: ['اقتصادي', 'متوسط'],
-    visaFreeFor: ['all'],
-    title: 'مراكش — المدينة الحمراء',
-    desc: 'أسواق المدينة القديمة، رياضات تقليدية، وجبال الأطلس القريبة. تجربة ثقافية ساحرة بألوان وروائح المغرب الأصيلة.',
-    pills: ['🕌 مدينة قديمة', '🏔️ أطلس', '🎨 ألوان'],
-    discount: 'TALATY10', discountNote: 'وفّر 10% على الرياض الذي تقيم به!'
-  }
+var travelDestinations = [];   /* filterTravelDestinations() reads this */
+var travelLoaded = false;      /* true once loading settles (success OR fallback) */
+
+/* Country display name → emoji flag (fallback '✈️' for anything missing) */
+var COUNTRY_FLAGS = {
+  'جورجيا':'🇬🇪','تركيا':'🇹🇷','أذربيجان':'🇦🇿','ماليزيا':'🇲🇾','إندونيسيا':'🇮🇩',
+  'تايلاند':'🇹🇭','المالديف':'🇲🇻','جزر المالديف':'🇲🇻','سيشل':'🇸🇨','موريشيوس':'🇲🇺',
+  'سريلانكا':'🇱🇰','نيبال':'🇳🇵','فيتنام':'🇻🇳','كمبوديا':'🇰🇭','الهند':'🇮🇳',
+  'قيرغيزستان':'🇰🇬','كازاخستان':'🇰🇿','أوزبكستان':'🇺🇿','أرمينيا':'🇦🇲','طاجيكستان':'🇹🇯',
+  'عُمان':'🇴🇲','الإمارات':'🇦🇪','قطر':'🇶🇦','البحرين':'🇧🇭','السعودية':'🇸🇦',
+  'الكويت':'🇰🇼','الأردن':'🇯🇴','العراق':'🇮🇶','مصر':'🇪🇬','لبنان':'🇱🇧',
+  'المغرب':'🇲🇦','تونس':'🇹🇳','كوسوفو':'🇽🇰','البوسنة والهرسك':'🇧🇦','ألبانيا':'🇦🇱',
+  'الجبل الأسود':'🇲🇪','صربيا':'🇷🇸','روسيا':'🇷🇺','بيلاروسيا':'🇧🇾','الصين':'🇨🇳',
+  'كوريا الجنوبية':'🇰🇷','اليابان':'🇯🇵','سنغافورة':'🇸🇬','هونغ كونغ':'🇭🇰','ماكاو':'🇲🇴',
+  'الفلبين':'🇵🇭','بروناي':'🇧🇳','لاوس':'🇱🇦','بوتان':'🇧🇹','باكستان':'🇵🇰',
+  'تنزانيا':'🇹🇿','كينيا':'🇰🇪','رواندا':'🇷🇼','إثيوبيا':'🇪🇹','مدغشقر':'🇲🇬',
+  'جزر القمر':'🇰🇲','جيبوتي':'🇩🇯','زيمبابوي':'🇿🇼','زامبيا':'🇿🇲','أوغندا':'🇺🇬',
+  'موزمبيق':'🇲🇿','السنغال':'🇸🇳','بالاو':'🇵🇼','اليونان':'🇬🇷','قبرص':'🇨🇾',
+  'إيطاليا':'🇮🇹','فرنسا':'🇫🇷','إسبانيا':'🇪🇸','بريطانيا':'🇬🇧','هولندا':'🇳🇱',
+  'النمسا':'🇦🇹','سويسرا':'🇨🇭','التشيك':'🇨🇿','المجر':'🇭🇺','البرتغال':'🇵🇹',
+  'ألمانيا':'🇩🇪','بولندا':'🇵🇱','كرواتيا':'🇭🇷','سلوفينيا':'🇸🇮','آيسلندا':'🇮🇸',
+  'النرويج':'🇳🇴','الدنمارك':'🇩🇰','البرازيل':'🇧🇷','الأرجنتين':'🇦🇷','تشيلي':'🇨🇱',
+  'البيرو':'🇵🇪','المكسيك':'🇲🇽'
+};
+
+/* Country name (profile dropdown) → nationality adjective (sheet column).
+   The matcher accepts BOTH forms so the sheet can use either. */
+var COUNTRY_TO_NATIONALITY = {
+  'الأردن':'أردني','السعودية':'سعودي','الإمارات':'إماراتي','قطر':'قطري',
+  'الكويت':'كويتي','عُمان':'عُماني','البحرين':'بحريني','مصر':'مصري',
+  'فلسطين':'فلسطيني','لبنان':'لبناني','سوريا':'سوري','العراق':'عراقي',
+  'اليمن':'يمني','ليبيا':'ليبي','تونس':'تونسي','الجزائر':'جزائري',
+  'المغرب':'مغربي','السودان':'سوداني','موريتانيا':'موريتاني','الصومال':'صومالي'
+};
+
+/* Built-in fallback (the original 15 curated destinations) —
+   used automatically when the travel sheet is unreachable. */
+var TRAVEL_FALLBACK_DESTINATIONS = [
+  { country:'جورجيا', flag:'🇬🇪', mood:['مغامرة','استرخاء'], budget:['اقتصادي','متوسط'], allowed:['all'],
+    title:'تبليسي وكازبيغي — جورجيا',
+    desc:'جبال القوقاز الخلابة، تبليسي القديمة بحماماتها الكبريتية، وقرية كازبيغي عند سفح الجبل المهيب. وجهة اقتصادية ومذهلة بصرياً.',
+    pills:['🏔️ جبال','♨️ حمامات','🍷 نبيذ'], mapQuery:'Tbilisi Georgia',
+    discount:'TALATY15', discountNote:'وفّر 15% على باقة الطيران والفندق!' },
+  { country:'تركيا', flag:'🇹🇷', mood:['اجتماعي','ثقافي'], budget:['متوسط','فخم'], allowed:['all'],
+    title:'إسطنبول — ملتقى القارتين',
+    desc:'آيا صوفيا، البازار الكبير، والبوسفور الساحر. مدينة تجمع التاريخ العثماني بالحياة الحديثة على ضفتي القارتين.',
+    pills:['🕌 عثماني','🛍️ بازار','🌉 بوسفور'], mapQuery:'Istanbul Turkey',
+    discount:'TALATY10', discountNote:'وفّر 10% على جولاتك السياحية!' },
+  { country:'تركيا', flag:'🇹🇷', mood:['استرخاء','رومانسي'], budget:['فخم','VIP'], allowed:['all'],
+    title:'بودروم — الريفييرا التركية',
+    desc:'شواطئ تركواز، يخوت فاخرة، ومنتجعات راقية على بحر إيجة. الوجهة المثالية لشهر العسل أو رحلة استرخاء فاخرة.',
+    pills:['🛥️ يخوت','🏖️ شواطئ','✨ فاخر'], mapQuery:'Bodrum Turkey',
+    discount:'TALATY15', discountNote:'وفّر 15% على إقامتك الفاخرة!' },
+  { country:'جزر المالديف', flag:'🇲🇻', mood:['رومانسي','استرخاء'], budget:['VIP'], allowed:['all'],
+    title:'المالديف — فلل فوق الماء',
+    desc:'فلل خشبية فاخرة فوق مياه فيروزية صافية. شهر عسل أو احتفال خاص لا يُنسى في واحدة من أجمل الجزر في العالم.',
+    pills:['🏝️ فلل مائية','🤿 غوص','💎 VIP'], mapQuery:'Maldives',
+    discount:'TALATY15', discountNote:'وفّر 15% على إقامة الفلل الفاخرة!' },
+  { country:'مصر', flag:'🇪🇬', mood:['ثقافي','مغامرة'], budget:['اقتصادي','متوسط'],
+    allowed:['الأردن','السعودية','الإمارات','الكويت','قطر','البحرين','عُمان','فلسطين','لبنان'],
+    title:'القاهرة والأقصر — أرض الفراعنة',
+    desc:'أهرامات الجيزة، معابد الأقصر، ونهر النيل الخالد. رحلة في عمق الحضارة المصرية القديمة بأسعار اقتصادية مناسبة.',
+    pills:['🔺 أهرامات','🛶 نيل','🏛️ معابد'], mapQuery:'Cairo Egypt',
+    discount:'TALATY10', discountNote:'وفّر 10% على جولة الأهرامات!' },
+  { country:'مصر', flag:'🇪🇬', mood:['استرخاء','مغامرة'], budget:['متوسط','فخم'],
+    allowed:['الأردن','السعودية','الإمارات','الكويت','قطر','البحرين','عُمان','فلسطين','لبنان'],
+    title:'الغردقة وشرم الشيخ — البحر الأحمر',
+    desc:'شعاب مرجانية عالمية، غوص استثنائي، ومنتجعات شاطئية. الوجهة المفضلة لمحبي البحر الأحمر من العرب.',
+    pills:['🤿 غوص','🐠 شعاب','☀️ شمس'], mapQuery:'Hurghada Egypt',
+    discount:'TALATY10', discountNote:'وفّر 10% على باقة الغوص!' },
+  { country:'لبنان', flag:'🇱🇧', mood:['اجتماعي','رومانسي'], budget:['متوسط','فخم'],
+    allowed:['الأردن','السعودية','الإمارات','الكويت','قطر','مصر'],
+    title:'بيروت وجبل لبنان',
+    desc:'حياة ليلية نابضة، مطاعم عالمية، وجبال خلابة على بعد دقائق من البحر. تجربة اجتماعية وثقافية لا تُضاهى.',
+    pills:['🌃 حياة ليلية','🍽️ مطاعم','🏔️ جبال'], mapQuery:'Beirut Lebanon',
+    discount:'TALATY10', discountNote:'وفّر 10% على حجز المطاعم!' },
+  { country:'الإمارات', flag:'🇦🇪', mood:['أدرينالين','اجتماعي'], budget:['فخم','VIP'], allowed:['all'],
+    title:'دبي — مدينة المستقبل',
+    desc:'برج خليفة، سفاري صحراوي، وأسواق فاخرة. مزيج من الإثارة العصرية والفخامة المطلقة في قلب الخليج.',
+    pills:['🏙️ ناطحات سحاب','🏜️ سفاري','🛍️ تسوق فاخر'], mapQuery:'Dubai UAE',
+    discount:'TALATY15', discountNote:'وفّر 15% على تذكرة برج خليفة!' },
+  { country:'الإمارات', flag:'🇦🇪', mood:['ثقافي','استرخاء'], budget:['متوسط','فخم'], allowed:['all'],
+    title:'أبوظبي — جامع الشيخ زايد واللوفر',
+    desc:'جامع الشيخ زايد المهيب ومتحف اللوفر أبوظبي. مزيج فريد بين الروحانية والفن العالمي في عاصمة الإمارات.',
+    pills:['🕌 جامع','🖼️ متحف','✨ معماري'], mapQuery:'Abu Dhabi UAE',
+    discount:'TALATY10', discountNote:'وفّر 10% على الجولات الثقافية!' },
+  { country:'جورجيا', flag:'🇬🇪', mood:['ثقافي','اجتماعي'], budget:['اقتصادي'], allowed:['all'],
+    title:'باتومي — لؤلؤة البحر الأسود',
+    desc:'مدينة ساحلية حديثة بحدائق نباتية ومطاعم على البحر الأسود. وجهة اقتصادية مليئة بالحياة والثقافة المعاصرة.',
+    pills:['🌊 بحر أسود','🌳 حدائق','💰 اقتصادي'], mapQuery:'Batumi Georgia',
+    discount:'TALATY10', discountNote:'وفّر 10% على فندقك في باتومي!' },
+  { country:'اليونان', flag:'🇬🇷', mood:['رومانسي','استرخاء'], budget:['فخم','VIP'], allowed:['all'],
+    title:'سانتوريني — جزيرة الغروب الذهبي',
+    desc:'منازل بيضاء وقباب زرقاء فوق منحدرات بركانية، وغروب شمس أسطوري. الوجهة الرومانسية الأشهر في العالم.',
+    pills:['🌅 غروب','🏛️ يوناني','💑 رومانسي'], mapQuery:'Santorini Greece',
+    discount:'TALATY15', discountNote:'وفّر 15% على إقامتك المطلة على البحر!' },
+  { country:'إندونيسيا', flag:'🇮🇩', mood:['استرخاء','مغامرة'], budget:['متوسط','فخم'], allowed:['all'],
+    title:'بالي — جزيرة الآلهة',
+    desc:'معابد هندوسية، حقول أرز خضراء، وشواطئ استوائية. ملاذ روحي وطبيعي يجمع المغامرة بالاسترخاء التام.',
+    pills:['🛕 معابد','🌾 حقول أرز','🏄 شواطئ'], mapQuery:'Bali Indonesia',
+    discount:'TALATY10', discountNote:'وفّر 10% على فيلتك في أوبود!' },
+  { country:'السعودية', flag:'🇸🇦', mood:['مغامرة','ثقافي'], budget:['متوسط','فخم'], allowed:['all'],
+    title:'العُلا — متحف مفتوح في الصحراء',
+    desc:'مدائن صالح الأثرية وتشكيلات صخرية عمرها آلاف السنين. وجهة سعودية جديدة تجمع التاريخ بالمغامرة الصحراوية.',
+    pills:['🏜️ صحراء','🗿 آثار','🚙 مغامرة'], mapQuery:'AlUla Saudi Arabia',
+    discount:'TALATY10', discountNote:'وفّر 10% على جولة مدائن صالح!' },
+  { country:'قبرص', flag:'🇨🇾', mood:['استرخاء','اجتماعي'], budget:['متوسط'], allowed:['all'],
+    title:'ليماسول — شواطئ المتوسط',
+    desc:'شواطئ متوسطية صافية ومدينة قديمة نابضة بالحياة. وجهة قريبة ومريحة للهروب القصير من صخب الحياة.',
+    pills:['🏖️ شواطئ','🍴 مأكولات','😌 استرخاء'], mapQuery:'Limassol Cyprus',
+    discount:'TALATY10', discountNote:'وفّر 10% على باقة الإقامة!' },
+  { country:'المغرب', flag:'🇲🇦', mood:['ثقافي','مغامرة'], budget:['اقتصادي','متوسط'], allowed:['all'],
+    title:'مراكش — المدينة الحمراء',
+    desc:'أسواق المدينة القديمة، رياضات تقليدية، وجبال الأطلس القريبة. تجربة ثقافية ساحرة بألوان وروائح المغرب الأصيلة.',
+    pills:['🕌 مدينة قديمة','🏔️ أطلس','🎨 ألوان'], mapQuery:'Marrakech Morocco',
+    discount:'TALATY10', discountNote:'وفّر 10% على الرياض الذي تقيم به!' }
 ];
+
+/* ── Normalise one CSV row from Sheet 2 into the internal schema ── */
+function normalizeTravelRow(row) {
+  var country  = (row.country || '').trim();
+  var discount = (row.discount || '').trim();
+
+  return {
+    id:      (row.id || '').trim(),
+    title:   (row.title || '').trim(),
+    desc:    (row.desc || '').trim(),
+    country: country,
+    flag:    (row.flag || '').trim() || COUNTRY_FLAGS[country] || '✈️',
+    mapQuery:(row.mapQuery || '').trim(),
+
+    /* mood/budget: single value in the sheet, but pipe-separated
+       multi-values are also accepted (e.g. "استرخاء|رومانسي") */
+    mood: (row.mood || '').split('|')
+      .map(function(m){ return normaliseStr(MOOD_SYNONYMS[normaliseStr(m)] || m); })
+      .filter(function(m){ return m.length > 0; }),
+    budget: (row.budget || '').split('|')
+      .map(function(b){ return normaliseStr(b); })
+      .filter(function(b){ return b.length > 0; }),
+
+    /* pipe-separated nationality list → clean array.
+       Empty cell → ['all'] so an unfilled row never disappears. */
+    allowed: (function() {
+      var list = (row.allowed_nationalities || '').split('|')
+        .map(function(n){ return normaliseStr(n); })
+        .filter(function(n){ return n.length > 0; });
+      return list.length > 0 ? list : ['all'];
+    })(),
+
+    /* comma-separated pills → clean array */
+    pills: (row.pills || '').split(',')
+      .map(function(p){ return p.trim(); })
+      .filter(function(p){ return p.length > 0; }),
+
+    discount: discount,
+    discountNote: (row.discountNote || '').trim() ||
+                  (discount ? 'استخدم الكود عند الحجز!' : '')
+  };
+}
+
+/* ── Loader: fetch Sheet 2 → Papa.parse → normalise → commit ──
+   Any failure (placeholder URL, network, empty sheet) falls back
+   to TRAVEL_FALLBACK_DESTINATIONS — Travel Mode never breaks. */
+function loadTravelDatabase() {
+  /* URL not configured yet → use built-in fallback immediately */
+  if (!GOOGLE_SHEET_TRAVEL_CSV_URL || GOOGLE_SHEET_TRAVEL_CSV_URL.indexOf('PLACEHOLDER') !== -1) {
+    travelDestinations = TRAVEL_FALLBACK_DESTINATIONS;
+    travelLoaded = true;
+    if (window.TALATY_DEBUG) {
+      console.warn('[Talaty Travel] Sheet URL not set — using ' + travelDestinations.length + ' fallback destinations');
+    }
+    return Promise.resolve();
+  }
+
+  var controller = new AbortController();
+  var timeoutId = setTimeout(function(){ controller.abort(); }, 7000); /* same 7s policy as local engine */
+
+  return fetch(GOOGLE_SHEET_TRAVEL_CSV_URL, { mode:'cors', cache:'no-cache', signal:controller.signal })
+    .then(function(res) {
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      return res.text();
+    })
+    .then(function(csvText) {
+      var parsed = Papa.parse(csvText, { header:true, skipEmptyLines:true });
+      var rows = (parsed.data || []).map(normalizeTravelRow)
+        .filter(function(d){ return d.title.length > 0 && d.mood.length > 0; });
+
+      if (rows.length === 0) throw new Error('empty sheet');
+
+      travelDestinations = rows;
+      travelLoaded = true;
+      if (window.TALATY_DEBUG) {
+        console.log('[Talaty Travel] Loaded ' + rows.length + ' destinations from Sheet 2');
+      }
+    })
+    .catch(function(err) {
+      travelDestinations = TRAVEL_FALLBACK_DESTINATIONS;
+      travelLoaded = true;
+      if (window.TALATY_DEBUG) {
+        console.warn('[Talaty Travel] Load failed (' + err.message + ') — using fallback destinations');
+      }
+    })
+    .finally(function() {
+      clearTimeout(timeoutId);
+    });
+}
 
 /* ══════════════════════════════════════════════════════════════
    RESOLVE USER COUNTRY — for visa-free filtering
@@ -432,16 +508,44 @@ function resolveUserCountry() {
 }
 
 /* ══════════════════════════════════════════════════════════════
-   TRAVEL FILTER ENGINE — mood ∩ budget ∩ visa-free-for-country
+   TRAVEL FILTER ENGINE v4.0 — mood ∩ budget ∩ nationality
+   Reads the dynamic travelDestinations array (Sheet 2).
+   The nationality check accepts BOTH the country name (الأردن)
+   and the nationality adjective (أردني), so either format works
+   in the sheet's allowed_nationalities column.
 ══════════════════════════════════════════════════════════════ */
 function filterTravelDestinations(moodKey, budgetKey) {
+  var nMood   = normaliseStr(MOOD_SYNONYMS[normaliseStr(moodKey)] || moodKey);
+  var nBudget = normaliseStr(budgetKey);
+
+  /* Build the user's identity tokens: country + nationality forms */
   var userCountry = resolveUserCountry();
-  return internationalDestinations.filter(function(d) {
-    var moodMatch   = d.mood.indexOf(moodKey) !== -1;
-    var budgetMatch = d.budget.indexOf(budgetKey) !== -1;
-    var visaMatch   = d.visaFreeFor.indexOf('all') !== -1 ||
-                       d.visaFreeFor.indexOf(userCountry) !== -1;
-    return moodMatch && budgetMatch && visaMatch;
+  var userTokens  = [normaliseStr(userCountry)];
+  var natForm     = COUNTRY_TO_NATIONALITY[userCountry];
+  if (natForm) userTokens.push(normaliseStr(natForm));
+
+  return travelDestinations.filter(function(d) {
+    if (d.mood.indexOf(nMood) === -1) {
+      if (window.TALATY_DEBUG) {
+        console.log('[Talaty Travel] SKIP "' + d.title + '" — mood: UI="' + nMood + '" | DB=' + JSON.stringify(d.mood));
+      }
+      return false;
+    }
+    if (d.budget.indexOf(nBudget) === -1) {
+      if (window.TALATY_DEBUG) {
+        console.log('[Talaty Travel] SKIP "' + d.title + '" — budget: UI="' + nBudget + '" | DB=' + JSON.stringify(d.budget));
+      }
+      return false;
+    }
+    var natOk = d.allowed.indexOf('all') !== -1 ||
+                userTokens.some(function(t){ return d.allowed.indexOf(t) !== -1; });
+    if (!natOk) {
+      if (window.TALATY_DEBUG) {
+        console.log('[Talaty Travel] SKIP "' + d.title + '" — nationality ' + JSON.stringify(userTokens) + ' not in ' + JSON.stringify(d.allowed));
+      }
+      return false;
+    }
+    return true;
   });
 }
 
@@ -927,6 +1031,10 @@ document.getElementById('discover-btn').addEventListener('click', function() {
       document.getElementById('res-discount-code').textContent = travelResult.discount;
       document.getElementById('res-discount-note').textContent = travelResult.discountNote;
 
+      /* Hide the whole discount box when this destination has no code */
+      var discountBoxT = document.querySelector('.discount-box');
+      if (discountBoxT) discountBoxT.style.display = travelResult.discount ? '' : 'none';
+
       if (badgeEl) { badgeEl.textContent = '✈️ وجهة سفرك المثالية'; badgeEl.classList.add('is-travel'); }
 
       /* Hide Google Maps button — not relevant for international travel */
@@ -966,6 +1074,10 @@ document.getElementById('discover-btn').addEventListener('click', function() {
       document.getElementById('res-desc').textContent          = sug.desc;
       document.getElementById('res-discount-code').textContent = sug.discount;
       document.getElementById('res-discount-note').textContent = sug.discountNote;
+
+      /* Hide the whole discount box when this place has no code */
+      var discountBoxL = document.querySelector('.discount-box');
+      if (discountBoxL) discountBoxL.style.display = sug.discount ? '' : 'none';
 
       if (badgeEl) { badgeEl.textContent = '🎯 اقتراحك المثالي'; badgeEl.classList.remove('is-travel'); }
 
