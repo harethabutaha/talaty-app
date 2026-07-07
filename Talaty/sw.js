@@ -10,7 +10,7 @@
 
 'use strict';
 
-var CACHE_VERSION = 'talaty-v4';
+var CACHE_VERSION = 'talaty-v5';
 
 var SHELL_URLS = [
   './',

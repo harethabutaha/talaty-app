@@ -2258,3 +2258,86 @@ body.travel-theme .bg-blob-3 { background: #4361EE; }
   .screen.cascade .cinematic-header,
   .screen.cascade .steps { animation: none !important; opacity: 1; }
 }
+
+
+/* ╔══════════════════════════════════════════════════════════════╗
+   ║  PREMIUM MOTION LAYER v4.2 — Tactile & Cinematic Additions   ║
+   ╚══════════════════════════════════════════════════════════════╝ */
+
+/* ═══ 1. GLASS BOTTOM SHEET — نتيجة الاكتشاف زجاجية فاخرة ═══ */
+.bottom-sheet {
+  background: rgba(255,255,255,0.84);
+  backdrop-filter: blur(22px) saturate(1.6);
+  -webkit-backdrop-filter: blur(22px) saturate(1.6);
+  border-top: 1px solid rgba(255,255,255,0.80);
+  box-shadow:
+    0 -18px 60px rgba(31,45,120,0.16),
+    0 -4px 16px rgba(0,0,0,0.07),
+    inset 0 1px 0 rgba(255,255,255,0.9);
+}
+.bottom-sheet-overlay {
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+}
+
+/* ═══ 2. TACTILE POP — انتقاء المزاج والمدينة يقفز بتوهج ═══ */
+@keyframes tap-pop {
+  0%   { transform: scale(0.92); }
+  55%  { transform: scale(1.09); }
+  100% { transform: scale(1.05); }
+}
+.mood-btn.active {
+  transform: scale(1.05);
+  animation: tap-pop 0.30s var(--ease-spring);
+}
+.city-pill.active {
+  transform: scale(1.05);
+  animation: tap-pop 0.30s var(--ease-spring);
+  box-shadow:
+    0 0 0 1px rgba(67,97,238,0.35),
+    inset 0 0 12px rgba(67,97,238,0.10),
+    0 8px 22px rgba(67,97,238,0.26);
+}
+
+/* ═══ 3. THE DISCOVER BUTTON — تدرج حي متحرك + هالة + ضغطة مُرضية ═══ */
+.cta-btn {
+  background: linear-gradient(270deg, #4361EE, #5B6FF0, #7C5CFF, #4A8CF7, #4361EE);
+  background-size: 400% 400%;
+  animation: cta-gradient-flow 7s ease infinite;
+  box-shadow:
+    0 10px 32px rgba(67,97,238,0.45),
+    0 2px 8px rgba(0,0,0,0.10),
+    inset 0 1px 0 rgba(255,255,255,0.25);
+}
+@keyframes cta-gradient-flow {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+.cta-btn:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 14px 40px rgba(67,97,238,0.55),
+    0 3px 10px rgba(0,0,0,0.10),
+    inset 0 1px 0 rgba(255,255,255,0.30);
+  filter: brightness(1.07) saturate(1.1);
+}
+.cta-btn:active {
+  transform: translateY(1px) scale(0.965);
+  box-shadow:
+    0 4px 14px rgba(67,97,238,0.40),
+    inset 0 2px 6px rgba(0,0,0,0.12);
+  filter: brightness(0.97);
+  transition-duration: 0.08s;
+}
+
+/* ═══ ACCESSIBILITY ═══ */
+@media (prefers-reduced-motion: reduce) {
+  .cta-btn { animation: none; }
+  .mood-btn.active, .city-pill.active { animation: none; transform: none; }
+}
+
+
+/* ── v4.2.1 — tactile press tuned to spec: scale(0.96) ── */
+.mood-btn:active  { transform: scale(0.96); }
+.city-pill:active { transform: scale(0.96); }
