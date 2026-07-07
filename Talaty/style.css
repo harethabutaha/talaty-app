@@ -2567,3 +2567,188 @@ body:not(.travel-theme) {
   font-weight: 600;
   color: var(--text-3);
 }
+
+
+/* ╔══════════════════════════════════════════════════════════════╗
+   ║  v5.0 — CINEMATIC SPLASH + COMPETITOR-INSPIRED STRUCTURE     ║
+   ║  Light Premium Theme (Apple/Airbnb-grade), Glassmorphism.    ║
+   ╚══════════════════════════════════════════════════════════════╝ */
+
+/* ═══════════════════════════════════════════════════════════════
+   1. CINEMATIC SPLASH SCREEN
+═══════════════════════════════════════════════════════════════ */
+.splash {
+  position: fixed;
+  inset: 0;
+  z-index: 3000;
+  overflow: hidden;
+  display: flex;
+  transition: transform 0.65s cubic-bezier(0.65, 0, 0.35, 1);
+}
+.splash.is-closed {
+  transform: translateY(-100%);
+  pointer-events: none;
+}
+
+.splash-scene {
+  position: absolute;
+  inset: -10%;
+  z-index: 0;
+  background:
+    radial-gradient(ellipse 65% 50% at 80% 12%, rgba(255,214,150,0.55), transparent 62%),
+    radial-gradient(ellipse 90% 60% at 15% 100%, rgba(24,32,86,0.55), transparent 70%),
+    linear-gradient(160deg, #1c2568 0%, #3f4fd6 38%, #6f83ff 62%, #ffcf9e 100%);
+  animation: ch-kenburns 22s ease-in-out infinite alternate;
+}
+
+.splash-clouds { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
+.splash-clouds .ch-cloud { opacity: 0.85; }
+
+.splash-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background: linear-gradient(180deg, rgba(10,14,40,0.05) 0%, rgba(10,14,40,0.20) 55%, rgba(8,10,28,0.62) 100%);
+}
+
+.splash-content {
+  position: relative;
+  z-index: 3;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: max(28px, env(safe-area-inset-top)) 26px max(30px, env(safe-area-inset-bottom));
+}
+
+.splash-logo { display: flex; align-items: center; gap: 8px; }
+.splash-logo-icon {
+  font-size: 26px;
+  filter: drop-shadow(0 2px 6px rgba(0,0,0,0.35));
+}
+.splash-logo-text {
+  font-size: 19px;
+  font-weight: 900;
+  color: #fff;
+  text-shadow: 0 2px 10px rgba(10,14,40,0.4);
+}
+
+.splash-mid { margin-top: auto; margin-bottom: 26px; }
+.splash-mid h1 {
+  font-size: 34px;
+  font-weight: 900;
+  line-height: 1.28;
+  color: #fff;
+  text-shadow: 0 4px 20px rgba(10,14,40,0.5), 0 1px 4px rgba(10,14,40,0.4);
+  margin: 0 0 10px;
+}
+.splash-mid p {
+  font-size: 14.5px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.92);
+  text-shadow: 0 1px 10px rgba(10,14,40,0.5);
+  line-height: 1.6;
+  max-width: 320px;
+  margin: 0;
+}
+
+.splash-cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 18px 20px;
+  border: none;
+  border-radius: var(--r-lg);
+  background: linear-gradient(270deg, #4361EE, #5B6FF0, #7C5CFF, #4A8CF7, #4361EE);
+  background-size: 400% 400%;
+  animation: cta-gradient-flow 7s ease infinite;
+  color: #fff;
+  font-family: 'Cairo', sans-serif;
+  font-size: 17px;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 14px 40px rgba(67,97,238,0.45), 0 4px 12px rgba(0,0,0,0.18);
+  transition: transform var(--dur-fast) var(--ease-spring);
+  -webkit-tap-highlight-color: transparent;
+}
+.splash-cta svg { width: 19px; height: 19px; }
+.splash-cta:active { transform: scale(0.96); }
+
+@media (prefers-reduced-motion: reduce) {
+  .splash-scene { animation: none; }
+  .splash { transition: none; }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   2. CITY BAR → "PHOTO CARD" TREATMENT (نفس البنية، شكل بطاقة صورة)
+   مستوحى من هيكل بطاقات الوجهات بصور المنافس، بألوان ثيمنا الفاتح
+═══════════════════════════════════════════════════════════════ */
+.city-bar-scroll {
+  gap: 10px !important;
+  padding-bottom: 2px;
+}
+.city-pill {
+  position: relative;
+  flex-direction: row;
+  align-items: center;
+  gap: 7px;
+  padding: 11px 16px 11px 14px;
+  border-radius: 16px;
+  border: 1px solid rgba(255,255,255,0.6);
+  background: linear-gradient(135deg, rgba(67,97,238,0.07), rgba(255,255,255,0.9));
+  overflow: hidden;
+  isolation: isolate;
+}
+.city-pill::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  opacity: 0;
+  background: linear-gradient(135deg, var(--accent), #7C5CFF);
+  transition: opacity var(--dur-med) ease;
+}
+.city-pill-emoji {
+  font-size: 22px;
+  width: 30px; height: 30px;
+  display: grid;
+  place-items: center;
+  background: rgba(255,255,255,0.65);
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+.city-pill.active {
+  border-color: transparent;
+  color: #fff;
+  box-shadow: 0 10px 26px -6px rgba(67,97,238,0.45), 0 3px 10px rgba(67,97,238,0.25);
+}
+.city-pill.active::before { opacity: 1; }
+.city-pill.active .city-pill-emoji { background: rgba(255,255,255,0.22); }
+
+/* ═══════════════════════════════════════════════════════════════
+   3. GLOWING FLOATING BOTTOM CTA — نمط الأزرار العائمة بصور المنافس
+═══════════════════════════════════════════════════════════════ */
+.cta-wrap {
+  position: sticky;
+  bottom: calc(var(--nav-h, 64px) + 14px + env(safe-area-inset-bottom, 0px));
+  z-index: 40;
+  padding-top: 4px;
+}
+.cta-wrap::before {
+  content: '';
+  position: absolute;
+  inset: -18px -8px -8px;
+  z-index: -1;
+  background: linear-gradient(180deg, transparent, var(--bg) 55%);
+  pointer-events: none;
+  border-radius: 24px;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   4. LIGHT PREMIUM POLISH — مساحات وحواف أكبر (Apple/Airbnb feel)
+═══════════════════════════════════════════════════════════════ */
+.filter-card { border-radius: 22px; }
+.bottom-sheet { border-radius: 30px 30px 0 0; }
+.mood-btn { border-radius: 18px; }

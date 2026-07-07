@@ -1997,3 +1997,39 @@ syncProfileUI();
     if (navigator.vibrate) navigator.vibrate(8);
   });
 })();
+
+
+/* ╔══════════════════════════════════════════════════════════════╗
+   ║  SPLASH SCREEN v5.0 — UI ONLY (additive, isolated)           ║
+   ║  Closes the cinematic splash and reveals the app.            ║
+   ║  Zero interaction with filterStrict / PapaParse / wallet /   ║
+   ║  gamification logic. Safe even if markup is missing.         ║
+   ╚══════════════════════════════════════════════════════════════╝ */
+(function () {
+  'use strict';
+
+  var splash = document.getElementById('splash-screen');
+  var btn    = document.getElementById('splash-cta-btn');
+  if (!splash || !btn) return;
+
+  var SPLASH_SEEN_KEY = 'talaty_splash_seen_v1';
+
+  function closeSplash() {
+    splash.classList.add('is-closed');
+    if (navigator.vibrate) navigator.vibrate(14);
+    try { sessionStorage.setItem(SPLASH_SEEN_KEY, '1'); } catch (e) { /* storage unavailable — non-fatal */ }
+    setTimeout(function () {
+      splash.setAttribute('aria-hidden', 'true');
+    }, 700);
+  }
+
+  btn.addEventListener('click', closeSplash);
+
+  /* لا تكرر السبلاش خلال نفس الجلسة (تبديل تبويبات، رجوع من خلفية...) */
+  try {
+    if (sessionStorage.getItem(SPLASH_SEEN_KEY) === '1') {
+      splash.classList.add('is-closed');
+      splash.setAttribute('aria-hidden', 'true');
+    }
+  } catch (e) { /* storage unavailable — splash just shows normally */ }
+})();

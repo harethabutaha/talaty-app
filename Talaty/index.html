@@ -28,9 +28,38 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;900&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="style.css?v=7">
+  <link rel="stylesheet" href="style.css?v=8">
 </head>
 <body>
+
+  <!-- ═══════════════════════════════════════════════════
+       Cinematic Splash Screen — يظهر أول شي، ينزلق للأعلى عند الضغط
+  ═══════════════════════════════════════════════════ -->
+  <div class="splash" id="splash-screen" role="dialog" aria-modal="true" aria-label="شاشة الترحيب">
+    <div class="splash-scene" aria-hidden="true"></div>
+    <div class="splash-clouds" aria-hidden="true">
+      <i class="ch-cloud c1"></i>
+      <i class="ch-cloud c2"></i>
+      <i class="ch-cloud c3"></i>
+    </div>
+    <div class="splash-overlay" aria-hidden="true"></div>
+    <div class="splash-content">
+      <div class="splash-logo">
+        <span class="splash-logo-icon">🧭</span>
+        <span class="splash-logo-text">طلعتك</span>
+      </div>
+      <div class="splash-mid">
+        <h1>وين بدك تطلع اليوم؟</h1>
+        <p>اكتشف أفضل الأماكن والوجهات المخصصة لمزاجك وميزانيتك</p>
+      </div>
+      <button class="splash-cta" id="splash-cta-btn">
+        <span>ابدأ طلعتك</span>
+        <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path d="M4 10h12M10 4l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+    </div>
+  </div>
 
   <!-- Background -->
   <div class="bg-wrap" aria-hidden="true">
@@ -817,7 +846,7 @@
   <!-- PapaParse — robust CSV-to-JSON parsing for Google Sheets CMS -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 
-  <script src="script.js?v=7"></script>
+  <script src="script.js?v=8"></script>
 
   <!-- PWA — Service Worker Registration -->
   <script>
