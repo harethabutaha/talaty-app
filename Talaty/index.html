@@ -28,7 +28,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;900&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="style.css?v=8">
+  <link rel="stylesheet" href="style.css?v=9">
 </head>
 <body>
 
@@ -60,6 +60,7 @@
       </button>
     </div>
   </div>
+
 
   <!-- Background -->
   <div class="bg-wrap" aria-hidden="true">
@@ -525,72 +526,59 @@
     ════════════════════════════════════════════════════ -->
     <div class="screen" id="screen-profile">
 
-      <!-- Avatar Hero -->
-      <div class="profile-avatar-section">
-        <div class="profile-avatar-ring" id="profile-avatar-ring">
-          <!-- Default SVG icon -->
-          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-            <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.8"/>
-            <path d="M4 20c0-4 3.58-7 8-7s8 3 8 7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-          </svg>
-          <!-- Shown when name is set -->
-          <span class="profile-big-initials" id="profile-big-initials"></span>
-          <!-- Edit badge -->
-          <span class="profile-edit-badge" aria-hidden="true">
-            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      <div class="pf-wrap">
+
+        <!-- decorative background blobs -->
+        <div class="pf-blobs" aria-hidden="true">
+          <span class="pf-blob pf-blob-1"></span>
+          <span class="pf-blob pf-blob-2"></span>
+          <span class="pf-blob pf-blob-3"></span>
+        </div>
+
+        <!-- Header top bar -->
+        <div class="pf-topbar">
+          <button class="pf-back-btn" id="profile-back-btn" aria-label="رجوع">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
-          </span>
+          </button>
+          <div class="pf-topbar-title">ملفي الشخصي</div>
+          <div class="pf-topbar-spacer"></div>
         </div>
-        <p class="profile-avatar-name" id="profile-avatar-name">مستخدم طلعتك</p>
-        <p class="profile-avatar-tag">عضو منذ اليوم 🎉</p>
-      </div>
 
-      <!-- Stats Row -->
-      <div class="profile-stats-row" style="padding: 0 18px;">
-        <div class="profile-stat-card">
-          <div class="profile-stat-num" id="stat-wallet-count">0</div>
-          <div class="profile-stat-label">كوبون محفوظ في المحفظة</div>
+        <!-- Avatar section -->
+        <div class="pf-avatar-section">
+          <div class="pf-avatar-ring" id="profile-avatar-ring">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.8"/>
+              <path d="M4 20c0-4 3.58-7 8-7s8 3 8 7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+            </svg>
+            <span class="pf-big-initials" id="profile-big-initials"></span>
+            <button class="pf-edit-badge" id="profile-edit-avatar-btn" aria-label="عدّل اسمك" type="button">
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <path d="M12 20h9" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+                <path d="M16.5 3.5a2.12 2.12 0 013 3L7 19l-4 1 1-4L16.5 3.5z" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+          </div>
+          <div class="pf-avatar-name" id="profile-avatar-name">مستخدم طلعتك</div>
         </div>
-        <div class="profile-stat-card">
-          <div class="profile-stat-num" id="stat-discover-count">0</div>
-          <div class="profile-stat-label">طلعة اكتُشفت معنا</div>
-        </div>
-      </div>
 
-      <!-- Form Card -->
-      <div class="profile-body">
-        <div class="profile-form-card" style="margin-top: 16px;">
+        <!-- Form card -->
+        <div class="pf-form-card">
 
-          <!-- Section label -->
-          <p class="settings-section-label" style="margin-bottom:4px;">بياناتك الشخصية</p>
-
-          <!-- Full name -->
-          <div class="profile-field">
-            <label class="profile-field-label" for="profile-name-input">الاسم الكامل</label>
-            <input
-              class="profile-input"
-              id="profile-name-input"
-              type="text"
-              placeholder="أدخل اسمك هنا..."
-              maxlength="60"
-              autocomplete="name"
-              aria-label="الاسم الكامل"
-            />
+          <!-- Name — floating label -->
+          <div class="pf-field pf-floating">
+            <input class="pf-input" id="profile-name-input" type="text"
+                   placeholder=" " maxlength="60" autocomplete="name" aria-label="الاسم الكامل">
+            <label class="pf-floating-label" for="profile-name-input">الاسم الكامل</label>
           </div>
 
-          <div class="profile-divider"></div>
-
-          <!-- Country / Nationality -->
-          <div class="profile-field">
-            <label class="profile-field-label" for="profile-country-select">الدولة / الجنسية</label>
-            <div class="profile-select-wrap">
-              <select
-                class="profile-input profile-select"
-                id="profile-country-select"
-                aria-label="الدولة / الجنسية"
-              >
+          <!-- Country dropdown -->
+          <div class="pf-field">
+            <div class="pf-field-title">الدولة / الجنسية</div>
+            <div class="pf-select-wrap">
+              <select class="pf-select" id="profile-country-select" aria-label="الدولة / الجنسية">
                 <option value="" disabled selected>اختر دولتك...</option>
                 <option value="الأردن">🇯🇴 الأردن</option>
                 <option value="فلسطين">🇵🇸 فلسطين</option>
@@ -611,62 +599,105 @@
                 <option value="المغرب">🇲🇦 المغرب</option>
                 <option value="أخرى">🌍 أخرى</option>
               </select>
+              <svg class="pf-select-chevron" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
             </div>
           </div>
 
-        </div><!-- /profile-form-card -->
+          <!-- Age group — segmented pills -->
+          <div class="pf-field">
+            <div class="pf-field-title">الفئة العمرية</div>
+            <div class="pf-segmented" id="profile-age-group" role="group" aria-label="الفئة العمرية">
+              <span class="pf-segmented-thumb" id="pf-age-thumb"></span>
+              <button type="button" class="pf-segmented-btn" data-age-val="4-17">4-17</button>
+              <button type="button" class="pf-segmented-btn" data-age-val="18-24">18-24</button>
+              <button type="button" class="pf-segmented-btn" data-age-val="25-34">25-34</button>
+              <button type="button" class="pf-segmented-btn" data-age-val="35-44">35-44</button>
+              <button type="button" class="pf-segmented-btn" data-age-val="45+">45+</button>
+            </div>
+          </div>
 
-        <!-- Save button -->
-        <button class="profile-save-btn" id="profile-save-btn">
-          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-            <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M17 21v-8H7v8M7 3v5h8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-          حفظ التغييرات
+          <!-- Gender — segmented pills -->
+          <div class="pf-field">
+            <div class="pf-field-title">الجنس</div>
+            <div class="pf-segmented pf-segmented-2" id="profile-gender" role="group" aria-label="الجنس">
+              <span class="pf-segmented-thumb" id="pf-gender-thumb"></span>
+              <button type="button" class="pf-segmented-btn" data-gender-val="male">ذكر</button>
+              <button type="button" class="pf-segmented-btn" data-gender-val="female">أنثى</button>
+            </div>
+          </div>
+
+        </div><!-- /pf-form-card -->
+
+        <!-- Stats -->
+        <div class="pf-stats-card">
+          <div class="pf-stats-title">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <circle cx="12" cy="8" r="6" stroke="currentColor" stroke-width="2"/>
+              <path d="M8.21 13.89L7 23l5-3 5 3-1.21-9.12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            إنجازاتك
+          </div>
+          <div class="pf-stats-grid">
+            <div class="pf-stat-tile">
+              <div class="pf-stat-icon pf-stat-icon-accent">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                  <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21l7.78-7.55 1.06-1.06a5.5 5.5 0 000-7.78z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+              <div class="pf-stat-num" id="stat-wallet-count">0</div>
+              <div class="pf-stat-label">كوبونات محفوظة</div>
+            </div>
+            <div class="pf-stat-tile">
+              <div class="pf-stat-icon pf-stat-icon-accent">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                  <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="1.8"/>
+                  <path d="M16.5 16.5L21 21" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                </svg>
+              </div>
+              <div class="pf-stat-num" id="stat-discover-count">0</div>
+              <div class="pf-stat-label">طلعات اكتُشفت</div>
+            </div>
+            <div class="pf-stat-tile">
+              <div class="pf-stat-icon pf-stat-icon-teal">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                  <path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+              <div class="pf-stat-num" id="gami-visited-count">0</div>
+              <div class="pf-stat-label">أماكن زرتها</div>
+            </div>
+            <div class="pf-stat-tile pf-stat-tile-gold">
+              <div class="pf-stat-icon pf-stat-icon-gold">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                  <path d="M8 21h8M12 17v4M7 4h10l-1 8a4 4 0 01-8 0L7 4z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M7 6H4a1 1 0 00-1 1c0 2.5 2 4 4 4M17 6h3a1 1 0 011 1c0 2.5-2 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+              <div class="pf-stat-rank" id="gami-rank-text">مكتشف مبتدئ</div>
+              <div class="pf-stat-label">رتبتك الحالية</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Save CTA -->
+        <button class="pf-save-btn cta-btn" id="profile-save-btn" type="button">
+          <span class="pf-save-icon-ready">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path d="M20 6L9 17l-5-5" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </span>
+          <span class="pf-save-icon-loading" hidden>
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <circle cx="12" cy="12" r="9" stroke="#fff" stroke-opacity="0.3" stroke-width="2.3"/>
+              <path d="M21 12a9 9 0 00-9-9" stroke="#fff" stroke-width="2.3" stroke-linecap="round"/>
+            </svg>
+          </span>
+          <span class="pf-save-label">حفظ التغييرات</span>
         </button>
 
-        <!-- ── إحصائياتي — Gamification Stats ── -->
-        <p class="settings-section-label" style="margin-top:24px;">إحصائياتي</p>
-        <div class="gami-stats-grid">
-
-          <!-- Card 1: Total Discovered -->
-          <div class="gami-stat-card">
-            <div class="gami-stat-icon gami-icon-blue">
-              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="1.8"/>
-                <path d="M16.5 16.5L21 21" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-              </svg>
-            </div>
-            <div class="gami-stat-num" id="gami-discover-count">0</div>
-            <div class="gami-stat-label">طلعات اكتشفتها</div>
-          </div>
-
-          <!-- Card 2: Places Visited -->
-          <div class="gami-stat-card">
-            <div class="gami-stat-icon gami-icon-teal">
-              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                <path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-            </div>
-            <div class="gami-stat-num" id="gami-visited-count">0</div>
-            <div class="gami-stat-label">أماكن زرتها</div>
-          </div>
-
-          <!-- Card 3: Rank -->
-          <div class="gami-stat-card gami-rank-card">
-            <div class="gami-stat-icon gami-icon-gold">
-              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                <path d="M8 21h8M12 17v4M7 4h10l-1 8a4 4 0 01-8 0L7 4z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-                <path d="M7 6H4a1 1 0 00-1 1c0 2.5 2 4 4 4M17 6h3a1 1 0 011 1c0 2.5-2 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-            </div>
-            <div class="gami-stat-rank" id="gami-rank-text">مكتشف مبتدئ</div>
-            <div class="gami-stat-label">الرتبة</div>
-          </div>
-
-        </div><!-- /gami-stats-grid -->
-
-      </div><!-- /profile-body -->
+      </div><!-- /pf-wrap -->
 
     </div><!-- /screen-profile -->
 
@@ -846,7 +877,7 @@
   <!-- PapaParse — robust CSV-to-JSON parsing for Google Sheets CMS -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 
-  <script src="script.js?v=8"></script>
+  <script src="script.js?v=9"></script>
 
   <!-- PWA — Service Worker Registration -->
   <script>

@@ -1525,6 +1525,30 @@ function getInitials(name) {
   return parts[0].slice(0, 2).toUpperCase();
 }
 
+/* ── Segmented-pill helper (age group / gender) — v5.1 ──
+   Activates the button matching `value` and slides the thumb to it.
+   Safe no-op if the group/thumb elements are missing or value is empty. */
+function setSegmentedActive(groupId, thumbId, attr, value, count) {
+  var group = document.getElementById(groupId);
+  var thumb = document.getElementById(thumbId);
+  if (!group) return;
+
+  var btns = group.querySelectorAll('.pf-segmented-btn');
+  var activeIndex = -1;
+  btns.forEach(function(btn, i) {
+    var isMatch = value && btn.getAttribute(attr) === value;
+    btn.classList.toggle('active', !!isMatch);
+    if (isMatch) activeIndex = i;
+  });
+
+  if (thumb) {
+    thumb.style.opacity = activeIndex === -1 ? '0' : '1';
+    if (activeIndex !== -1) {
+      thumb.style.transform = 'translateX(' + (activeIndex * 100) + '%)';
+    }
+  }
+}
+
 /* ── Sync ALL profile UI elements with current saved data ── */
 function syncProfileUI() {
   var profile  = getProfile();
@@ -1565,6 +1589,12 @@ function syncProfileUI() {
   var countrySelect  = document.getElementById('profile-country-select');
   if (nameInput     && name)    nameInput.value    = name;
   if (countrySelect && country) countrySelect.value = country;
+
+  /* ── Pre-fill age group / gender segmented pills (v5.1) ── */
+  var ageGroup = (profile && profile.ageGroup) ? profile.ageGroup : '';
+  var gender   = (profile && profile.gender)   ? profile.gender   : '';
+  setSegmentedActive('profile-age-group', 'pf-age-thumb', 'data-age-val', ageGroup, 5);
+  setSegmentedActive('profile-gender', 'pf-gender-thumb', 'data-gender-val', gender, 2);
 
   /* ── Stats counters (hero row) ── */
   var walletCount   = getWalletItems().length;
@@ -1616,6 +1646,10 @@ document.getElementById('profile-save-btn').addEventListener('click', function()
   var countryEl    = document.getElementById('profile-country-select');
   var name         = nameInput   ? nameInput.value.trim() : '';
   var country      = countryEl   ? countryEl.value        : '';
+  var ageGroupEl   = document.querySelector('#profile-age-group .pf-segmented-btn.active');
+  var genderEl     = document.querySelector('#profile-gender .pf-segmented-btn.active');
+  var ageGroup     = ageGroupEl ? ageGroupEl.getAttribute('data-age-val')    : '';
+  var gender       = genderEl   ? genderEl.getAttribute('data-gender-val')  : '';
 
   /* Require a name */
   if (!name) {
@@ -1631,16 +1665,66 @@ document.getElementById('profile-save-btn').addEventListener('click', function()
     return;
   }
 
-  saveProfile({ name: name, country: country, savedAt: Date.now() });
-  syncProfileUI();
+  /* ── brief "saving" spinner state (v5.1 — matches the Claude Design mockup) ── */
+  var saveBtn     = this;
+  var iconReady   = saveBtn.querySelector('.pf-save-icon-ready');
+  var iconLoading = saveBtn.querySelector('.pf-save-icon-loading');
+  var labelEl     = saveBtn.querySelector('.pf-save-label');
+  if (saveBtn.classList.contains('is-saving')) return; /* debounce double-clicks */
+  saveBtn.classList.add('is-saving');
+  if (iconReady)   iconReady.hidden = true;
+  if (iconLoading) iconLoading.hidden = false;
+  if (labelEl)     labelEl.textContent = 'جارٍ الحفظ...';
 
-  if (navigator.vibrate) navigator.vibrate([20, 40, 20]);
-  showToast('تم حفظ بيانات الملف الشخصي بنجاح!', 'success', 3200);
+  setTimeout(function() {
+    saveProfile({ name: name, country: country, ageGroup: ageGroup, gender: gender, savedAt: Date.now() });
+    syncProfileUI();
 
-  if (typeof gtag === 'function') {
-    gtag('event', 'profile_saved', { has_name: !!name, has_country: !!country });
-  }
+    saveBtn.classList.remove('is-saving');
+    if (iconReady)   iconReady.hidden = false;
+    if (iconLoading) iconLoading.hidden = true;
+    if (labelEl)     labelEl.textContent = 'حفظ التغييرات';
+
+    if (navigator.vibrate) navigator.vibrate([20, 40, 20]);
+    showToast('تم حفظ بيانات الملف الشخصي بنجاح!', 'success', 3200);
+
+    if (typeof gtag === 'function') {
+      gtag('event', 'profile_saved', { has_name: !!name, has_country: !!country, has_age_group: !!ageGroup, has_gender: !!gender });
+    }
+  }, 500);
 });
+
+/* ── Age group / gender pill selection (v5.1) ── */
+document.querySelectorAll('#profile-age-group .pf-segmented-btn').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    setSegmentedActive('profile-age-group', 'pf-age-thumb', 'data-age-val', btn.getAttribute('data-age-val'), 5);
+    if (navigator.vibrate) navigator.vibrate(10);
+  });
+});
+document.querySelectorAll('#profile-gender .pf-segmented-btn').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    setSegmentedActive('profile-gender', 'pf-gender-thumb', 'data-gender-val', btn.getAttribute('data-gender-val'), 2);
+    if (navigator.vibrate) navigator.vibrate(10);
+  });
+});
+
+/* ── Back button → reuse the existing bottom-nav "discover" handler (v5.1) ── */
+var pfBackBtn = document.getElementById('profile-back-btn');
+if (pfBackBtn) {
+  pfBackBtn.addEventListener('click', function() {
+    var discoverNav = document.querySelector('[data-target="screen-discover"]');
+    if (discoverNav) discoverNav.click();
+  });
+}
+
+/* ── Edit-avatar badge → focus the name input (v5.1) ── */
+var pfEditAvatarBtn = document.getElementById('profile-edit-avatar-btn');
+if (pfEditAvatarBtn) {
+  pfEditAvatarBtn.addEventListener('click', function() {
+    var nameInput = document.getElementById('profile-name-input');
+    if (nameInput) nameInput.focus();
+  });
+}
 
 /* ── Live avatar preview while user types name ── */
 (function initLivePreview() {
@@ -2000,10 +2084,10 @@ syncProfileUI();
 
 
 /* ╔══════════════════════════════════════════════════════════════╗
-   ║  SPLASH SCREEN v5.0 — UI ONLY (additive, isolated)           ║
-   ║  Closes the cinematic splash and reveals the app.            ║
-   ║  Zero interaction with filterStrict / PapaParse / wallet /   ║
-   ║  gamification logic. Safe even if markup is missing.         ║
+   ║  SPLASH SCREEN v5.0 (RESTORED) — UI ONLY, isolated           ║
+   ║  Re-applied because the uploaded working copy was v7          ║
+   ║  (missing this layer). Content identical to what was          ║
+   ║  delivered before. Zero interaction with core data logic.     ║
    ╚══════════════════════════════════════════════════════════════╝ */
 (function () {
   'use strict';
@@ -2017,15 +2101,12 @@ syncProfileUI();
   function closeSplash() {
     splash.classList.add('is-closed');
     if (navigator.vibrate) navigator.vibrate(14);
-    try { sessionStorage.setItem(SPLASH_SEEN_KEY, '1'); } catch (e) { /* storage unavailable — non-fatal */ }
-    setTimeout(function () {
-      splash.setAttribute('aria-hidden', 'true');
-    }, 700);
+    try { sessionStorage.setItem(SPLASH_SEEN_KEY, '1'); } catch (e) { /* non-fatal */ }
+    setTimeout(function () { splash.setAttribute('aria-hidden', 'true'); }, 700);
   }
 
   btn.addEventListener('click', closeSplash);
 
-  /* لا تكرر السبلاش خلال نفس الجلسة (تبديل تبويبات، رجوع من خلفية...) */
   try {
     if (sessionStorage.getItem(SPLASH_SEEN_KEY) === '1') {
       splash.classList.add('is-closed');
