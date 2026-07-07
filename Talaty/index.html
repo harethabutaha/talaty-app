@@ -28,7 +28,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;900&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=7">
 </head>
 <body>
 
@@ -106,6 +106,28 @@
           سفر للخارج
         </button>
         <div class="travel-toggle-thumb" id="travel-toggle-thumb" aria-hidden="true"></div>
+      </div>
+    </div>
+
+    <!-- ═══ Smart Search — بحث فوري في الأماكن والوجهات ═══ -->
+    <div class="section" id="search-section">
+      <div class="filter-card search-card">
+        <div class="search-bar">
+          <svg class="search-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/>
+            <path d="M20 20l-3.5-3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          <input type="search" id="smart-search-input" class="search-input"
+                 placeholder="ابحث عن مكان أو كود خصم..."
+                 autocomplete="off" enterkeyhint="search"
+                 aria-label="ابحث عن مكان أو كود خصم">
+          <button class="search-clear" id="search-clear-btn" aria-label="مسح البحث" hidden>
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+            </svg>
+          </button>
+        </div>
+        <div class="search-results" id="search-results" hidden></div>
       </div>
     </div>
 
@@ -795,7 +817,7 @@
   <!-- PapaParse — robust CSV-to-JSON parsing for Google Sheets CMS -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 
-  <script src="script.js"></script>
+  <script src="script.js?v=7"></script>
 
   <!-- PWA — Service Worker Registration -->
   <script>

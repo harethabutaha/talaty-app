@@ -10,13 +10,13 @@
 
 'use strict';
 
-var CACHE_VERSION = 'talaty-v5';
+var CACHE_VERSION = 'talaty-v7';
 
 var SHELL_URLS = [
   './',
   './index.html',
-  './style.css',
-  './script.js',
+  './style.css?v=7',
+  './script.js?v=7',
   './manifest.json',
   'https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js'
 ];

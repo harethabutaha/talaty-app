@@ -1798,3 +1798,202 @@ syncProfileUI();
   refreshHeader();
   runCascade();
 })();
+
+
+/* ╔══════════════════════════════════════════════════════════════╗
+   ║  SMART SEARCH v4.4 — UI FEATURE (additive, isolated)         ║
+   ║  Real-time search across `places` + `travelDestinations`.   ║
+   ║  Bypasses filters; reuses the existing bottom-sheet DOM.    ║
+   ║  ⚠️ Reads the data arrays — never mutates them.              ║
+   ╚══════════════════════════════════════════════════════════════╝ */
+(function () {
+  'use strict';
+
+  var input    = document.getElementById('smart-search-input');
+  var clearBtn = document.getElementById('search-clear-btn');
+  var listEl   = document.getElementById('search-results');
+  if (!input || !listEl) return;   /* markup missing → skip silently */
+
+  var debounceTimer = null;
+
+  /* ── search core: title / desc / discount across both engines ── */
+  function findMatches(query) {
+    var q = normaliseStr(query).toLowerCase();
+    if (q.length < 2) return [];
+
+    var out = [];
+
+    function hit(title, desc, discount) {
+      return (title    && normaliseStr(title).toLowerCase().indexOf(q)    !== -1) ||
+             (desc     && normaliseStr(desc).toLowerCase().indexOf(q)     !== -1) ||
+             (discount && normaliseStr(discount).toLowerCase().indexOf(q) !== -1);
+    }
+
+    /* local places (Sheet 1) */
+    (Array.isArray(places) ? places : []).forEach(function (p) {
+      if (hit(p.title, p.desc, p.discount)) {
+        out.push({ kind: 'local', item: p });
+      }
+    });
+
+    /* travel destinations (Sheet 2 or fallback) */
+    (Array.isArray(travelDestinations) ? travelDestinations : []).forEach(function (d) {
+      if (hit(d.title, d.desc, d.discount)) {
+        out.push({ kind: 'travel', item: d });
+      }
+    });
+
+    return out.slice(0, 6);   /* keep the dropdown tight */
+  }
+
+  /* ── open the existing bottom sheet with a searched item ── */
+  function openSearchResult(kind, item) {
+    var isTravel  = (kind === 'travel');
+    var mapsBtn   = document.getElementById('res-maps-btn');
+    var badgeEl   = document.getElementById('res-badge-text');
+    var pillsEl   = document.getElementById('res-pills');
+    var saveBtn   = document.getElementById('save-wallet-btn');
+    var copyBtn   = document.getElementById('copy-btn');
+    var skeleton  = document.getElementById('sheet-skeleton');
+    var resultCard  = document.getElementById('result-card');
+    var noMatchCard = document.getElementById('no-match-card');
+
+    var cityLabel = isTravel
+      ? (item.flag || '✈️') + ' ' + (item.country || '')
+      : '📍 ' + (Array.isArray(item.city) ? item.city[0] : (item.city || 'الأردن'));
+
+    document.getElementById('res-city-tag').textContent       = cityLabel;
+    document.getElementById('res-title').textContent          = item.title;
+    document.getElementById('res-desc').textContent           = item.desc || '';
+    document.getElementById('res-discount-code').textContent  = item.discount || '';
+    document.getElementById('res-discount-note').textContent  = item.discountNote || '';
+
+    var discountBox = document.querySelector('.discount-box');
+    if (discountBox) discountBox.style.display = item.discount ? '' : 'none';
+
+    if (badgeEl) {
+      badgeEl.textContent = '🔍 نتيجة بحثك';
+      badgeEl.classList.toggle('is-travel', isTravel);
+    }
+
+    if (mapsBtn) {
+      if (!isTravel && item.mapQuery) {
+        mapsBtn.style.display = '';
+        mapsBtn.href = 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(item.mapQuery);
+      } else {
+        mapsBtn.style.display = 'none';
+      }
+    }
+
+    if (copyBtn) { copyBtn.textContent = 'نسخ'; copyBtn.classList.remove('copied'); }
+
+    if (saveBtn) {
+      saveBtn.dataset.title    = isTravel ? ((item.flag || '✈️') + ' ' + item.title) : item.title;
+      saveBtn.dataset.discount = item.discount || '';
+      saveBtn.dataset.note     = item.discountNote || '';
+      saveBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><rect x="1" y="4" width="22" height="16" rx="3" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M1 10h22" stroke="currentColor" stroke-width="1.8"/><circle cx="7.5" cy="15" r="1.2" fill="currentColor"/><path d="M12 15h5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg> احفظ في المحفظة';
+      saveBtn.classList.remove('saved');
+    }
+
+    var waBtn = document.getElementById('whatsapp-share-btn');
+    if (waBtn) waBtn.onclick = function () { shareToWhatsApp(item.title); };
+
+    if (pillsEl) {
+      pillsEl.innerHTML = '';
+      (item.pills || []).forEach(function (text) {
+        var span = document.createElement('span');
+        span.className = 'result-pill';
+        span.textContent = text;
+        pillsEl.appendChild(span);
+      });
+    }
+
+    /* open the sheet instantly (no AI-thinking cycle for search) */
+    if (skeleton)    skeleton.classList.remove('visible');
+    if (noMatchCard) noMatchCard.classList.remove('show');
+    if (resultCard)  { resultCard.classList.remove('show'); void resultCard.offsetWidth; resultCard.classList.add('show'); }
+    document.getElementById('sheet-overlay').classList.add('show');
+    document.getElementById('bottom-sheet').classList.add('show');
+    if (navigator.vibrate) navigator.vibrate(12);
+
+    if (typeof gtag === 'function') {
+      gtag('event', 'search_result_opened', { kind: kind, title: item.title });
+    }
+  }
+
+  /* ── render the dropdown ── */
+  function renderResults(matches, query) {
+    listEl.innerHTML = '';
+
+    if (query.trim().length < 2) { listEl.hidden = true; return; }
+
+    if (matches.length === 0) {
+      var empty = document.createElement('div');
+      empty.className = 'search-empty';
+      empty.textContent = 'لا توجد نتائج لـ "' + query.trim() + '" — جرّب كلمة أخرى';
+      listEl.appendChild(empty);
+      listEl.hidden = false;
+      return;
+    }
+
+    matches.forEach(function (m) {
+      var item = m.item;
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'search-result-item';
+
+      var emoji = document.createElement('span');
+      emoji.className = 'sri-emoji';
+      emoji.textContent = m.kind === 'travel' ? (item.flag || '✈️') : '📍';
+
+      var txt = document.createElement('span');
+      txt.className = 'sri-text';
+      var t = document.createElement('span');
+      t.className = 'sri-title';
+      t.textContent = item.title;
+      var s = document.createElement('span');
+      s.className = 'sri-sub';
+      s.textContent = m.kind === 'travel'
+        ? (item.country || 'وجهة سفر')
+        : (Array.isArray(item.city) ? item.city.join('، ') : (item.city || ''));
+      txt.appendChild(t); txt.appendChild(s);
+
+      btn.appendChild(emoji);
+      btn.appendChild(txt);
+
+      if (item.discount) {
+        var d = document.createElement('span');
+        d.className = 'sri-discount';
+        d.textContent = item.discount;
+        btn.appendChild(d);
+      }
+
+      btn.addEventListener('click', function () {
+        openSearchResult(m.kind, item);
+      });
+
+      listEl.appendChild(btn);
+    });
+
+    listEl.hidden = false;
+  }
+
+  /* ── real-time input (debounced 140ms) ── */
+  input.addEventListener('input', function () {
+    var q = input.value;
+    clearBtn.hidden = q.length === 0;
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(function () {
+      renderResults(findMatches(q), q);
+    }, 140);
+  });
+
+  clearBtn.addEventListener('click', function () {
+    input.value = '';
+    clearBtn.hidden = true;
+    listEl.hidden = true;
+    listEl.innerHTML = '';
+    input.focus();
+    if (navigator.vibrate) navigator.vibrate(8);
+  });
+})();
