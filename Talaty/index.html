@@ -28,7 +28,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;900&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="style.css?v=9">
+  <link rel="stylesheet" href="style.css?v=10">
 </head>
 <body>
 
@@ -425,44 +425,95 @@
 
       <div class="settings-body">
 
-        <!-- ── صندوق الاقتراحات ── -->
-        <p class="settings-section-label">صندوق الاقتراحات</p>
-        <div class="settings-card">
-          <div class="settings-card-title">
-            <span class="s-icon s-icon-blue">
-              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"
-                      stroke="currentColor" stroke-width="1.8"
-                      stroke-linecap="round" stroke-linejoin="round"/>
+        <!-- ── الحساب / الملف الشخصي ── -->
+        <div class="stg-card">
+          <div class="stg-card-head">
+            <div class="stg-icon-badge stg-icon-badge-lg stg-icon-blue" id="stg-account-avatar-badge">
+              <svg id="stg-account-avatar-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                <circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="1.8"/>
               </svg>
-            </span>
-            شاركنا اقتراحك
+              <span class="stg-account-initials" id="stg-account-initials" style="display:none;"></span>
+            </div>
+            <div style="flex:1;">
+              <div class="stg-card-title" id="stg-account-title">ملفك الشخصي</div>
+              <div class="stg-card-desc" id="stg-account-desc" style="margin-top:3px;">أنشئ ملفك لحفظ تفضيلاتك وتخصيص توصياتك</div>
+            </div>
           </div>
-          <p class="settings-card-desc">عندك مكان مميز أو فكرة تطوير؟ نبي نسمعك!</p>
+          <button class="stg-btn-ocean full" id="stg-account-btn" type="button">إنشاء ملفي الشخصي</button>
+        </div>
+
+        <!-- ── صندوق الاقتراحات ── -->
+        <div class="stg-card stg-card-compact">
+          <div class="stg-card-head">
+            <div class="stg-icon-badge stg-icon-badge-sm stg-icon-teal">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <div>
+              <div class="stg-card-title stg-sm">صندوق الاقتراحات</div>
+              <div class="stg-card-desc stg-sm" style="margin-top:2px;">عندك مكان مميز أو فكرة تطوير؟ نبي نسمعك!</div>
+            </div>
+          </div>
           <textarea
             class="suggestions-textarea"
             id="suggestions-textarea"
             placeholder="عندك مكان رهيب أو فكرة للتطبيق؟ شاركنا..."
             maxlength="500"
             aria-label="صندوق الاقتراحات"
+            style="margin-bottom:10px;"
           ></textarea>
-          <button class="settings-btn settings-btn-primary" id="suggestions-submit-btn">
-            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-              <path d="M22 2L11 13" stroke="currentColor" stroke-width="2"
-                    stroke-linecap="round" stroke-linejoin="round"/>
-              <path d="M22 2L15 22 11 13 2 9l20-7z" stroke="currentColor" stroke-width="2"
-                    stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-            إرسال
+          <button class="stg-btn-send" id="suggestions-submit-btn" type="button" disabled>
+            <svg class="stg-spinner" id="suggestions-spinner" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" style="display:none;"><path d="M12 2 a10 10 0 0 1 10 10"></path></svg>
+            <span id="suggestions-submit-label">إرسال</span>
           </button>
         </div>
 
+        <!-- ── المظهر واللغة ── -->
+        <div class="stg-card">
+          <div class="stg-card-head stg-centered">
+            <div class="stg-icon-badge stg-icon-blue">
+              <svg width="19" height="19" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <div style="flex:1;">
+              <div class="stg-card-title">المظهر</div>
+              <div class="stg-card-desc" style="margin-top:3px;">الوضع الداكن — قريباً 🌙</div>
+            </div>
+            <button class="stg-toggle-track" id="stg-dark-toggle" type="button" role="switch" aria-checked="false" aria-label="الوضع الداكن (قريباً)">
+              <div class="stg-toggle-thumb"></div>
+            </button>
+          </div>
+
+          <div class="stg-divider"></div>
+
+          <div class="stg-card-head stg-centered">
+            <div class="stg-icon-badge stg-icon-teal">
+              <svg width="19" height="19" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.8"/>
+                <line x1="2" y1="12" x2="22" y2="12" stroke="currentColor" stroke-width="1.8"/>
+                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" stroke="currentColor" stroke-width="1.8"/>
+              </svg>
+            </div>
+            <div style="flex:1;">
+              <div class="stg-card-title">اللغة</div>
+              <div class="stg-card-desc" style="margin-top:3px;">الإنجليزية قريباً — العربية هي لغة التطبيق حالياً</div>
+            </div>
+            <div class="stg-seg-wrap" id="stg-lang-toggle">
+              <div class="stg-seg-thumb"></div>
+              <button class="stg-seg-btn ar" id="stg-lang-ar-btn" type="button" aria-label="العربية">AR</button>
+              <button class="stg-seg-btn en" id="stg-lang-en-btn" type="button" aria-label="English (قريباً)">EN</button>
+            </div>
+          </div>
+        </div>
+
         <!-- ── إدارة المحفظة ── -->
-        <p class="settings-section-label">المحفظة</p>
-        <div class="settings-card">
-          <div class="settings-card-title">
-            <span class="s-icon s-icon-coral">
-              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <div class="stg-card">
+          <div class="stg-card-head">
+            <div class="stg-icon-badge stg-icon-coral">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                 <polyline points="3 6 5 6 21 6" stroke="currentColor" stroke-width="1.8"
                           stroke-linecap="round" stroke-linejoin="round"/>
                 <path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"
@@ -473,50 +524,49 @@
                 <path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2" stroke="currentColor"
                       stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
               </svg>
-            </span>
-            تفريغ المحفظة
+            </div>
+            <div>
+              <div class="stg-card-title">تفريغ المحفظة</div>
+              <div class="stg-card-desc" style="margin-top:3px;">حذف جميع الكوبونات والأماكن المحفوظة بشكل نهائي</div>
+            </div>
           </div>
-          <p class="settings-card-desc">حذف جميع الكوبونات والأماكن المحفوظة بشكل نهائي.</p>
-          <button class="settings-btn settings-btn-danger" id="clear-wallet-btn">
-            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <button class="stg-btn-outline full danger" id="clear-wallet-btn" type="button">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
               <polyline points="3 6 5 6 21 6" stroke="currentColor" stroke-width="1.8"
                         stroke-linecap="round" stroke-linejoin="round"/>
               <path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"
                     stroke="currentColor" stroke-width="1.8"
                     stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
-            تفريغ المحفظة الآن
+            <span>تفريغ المحفظة الآن</span>
           </button>
         </div>
 
-        <!-- ── معلومات التطبيق ── -->
-        <p class="settings-section-label">عن التطبيق</p>
-        <div class="settings-card">
-          <div class="settings-card-title">
-            <span class="s-icon s-icon-teal">
-              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/>
-                <path d="M12 8h.01M11 12h1v4h1" stroke="currentColor" stroke-width="1.8"
-                      stroke-linecap="round" stroke-linejoin="round"/>
+        <!-- ── الدعم الفني ── -->
+        <div class="stg-card">
+          <div class="stg-card-head">
+            <div class="stg-icon-badge stg-icon-blue">
+              <svg width="19" height="19" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <path d="M3 18v-6a9 9 0 0 1 18 0v6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
               </svg>
-            </span>
-            معلومات التطبيق
-          </div>
-          <div style="margin-top:10px;">
-            <div class="app-info-row">
-              <span class="app-info-key">إصدار التطبيق</span>
-              <span class="app-info-badge">MVP v2.0</span>
             </div>
-            <div class="app-info-row">
-              <span class="app-info-key">المنطقة</span>
-              <span class="app-info-val">الأردن 🇯🇴</span>
-            </div>
-            <div class="app-info-row">
-              <span class="app-info-key">اللغة</span>
-              <span class="app-info-val">العربية</span>
+            <div>
+              <div class="stg-card-title">الدعم الفني</div>
+              <div class="stg-card-desc" style="margin-top:3px;">عندك مشكلة أو استفسار؟ فريقنا جاهز يساعدك بأي وقت</div>
             </div>
           </div>
+          <button class="stg-btn-outline full" id="stg-support-btn" type="button">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span>تواصل مع الدعم</span>
+          </button>
         </div>
+
+        <!-- ── تذييل ── -->
+        <div class="stg-footer">إصدار التطبيق: MVP v2.0</div>
 
       </div><!-- /settings-body -->
     </div><!-- /screen-settings -->
@@ -877,7 +927,7 @@
   <!-- PapaParse — robust CSV-to-JSON parsing for Google Sheets CMS -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 
-  <script src="script.js?v=9"></script>
+  <script src="script.js?v=10"></script>
 
   <!-- PWA — Service Worker Registration -->
   <script>

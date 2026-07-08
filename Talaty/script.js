@@ -129,6 +129,131 @@ function splitCsvField(rawValue, mapObj) {
 }
 
 /* ══════════════════════════════════════════════════════════════
+   DEMOGRAPHICS ENGINE v1.0 — Age & Gender Hyper-Personalization
+   Reads user Age/Gender (profile OR legacy keys) and matches them
+   against the sheet's `target_age` / `target_gender` columns.
+   Defensive by design: any missing/unknown value ⇒ PASS.
+══════════════════════════════════════════════════════════════ */
+
+/* Sheet vocabulary → canonical gender restriction */
+var TARGET_GENDER_SYNONYMS = {
+  'شباب فقط':  'male',
+  'رجال فقط':  'male',
+  'ذكور فقط':  'male',
+  'ذكور':      'male',
+  'بنات فقط':  'female',
+  'نساء فقط':  'female',
+  'إناث فقط':  'female',
+  'إناث':      'female',
+  'سيدات فقط': 'female',
+  'للجميع':    'all',
+  'الجميع':    'all',
+  'all':       'all'
+};
+
+/* User-facing gender labels → canonical */
+var USER_GENDER_SYNONYMS = {
+  'ذكر':    'male',
+  'male':   'male',
+  'أنثى':   'female',
+  'انثى':   'female',
+  'female': 'female'
+};
+
+/* Age bands for each sheet category. Categories not listed here
+   (unknown vocabulary) are treated as 'للجميع' — never exclude. */
+var TARGET_AGE_BANDS = {
+  'أطفال':  { min: 0,  max: 12  },
+  'شباب':   { min: 13, max: 29  },
+  'عائلات': { min: 25, max: 150 }
+};
+
+/* ── Resolve the user's demographics once per filter run ──
+   Priority: literal spec keys (talaty_user_age / talaty_user_gender)
+   → profile v1 (ageGroup / gender). Returns nulls when unknown. */
+function resolveUserDemographics() {
+  var out = { ageMin: null, ageMax: null, gender: null };
+  try {
+    /* 1. Literal keys from spec (highest priority) */
+    var rawAge    = localStorage.getItem('talaty_user_age');
+    var rawGender = localStorage.getItem('talaty_user_gender');
+
+    /* 2. Fallback: profile v1 */
+    if (!rawAge || !rawGender) {
+      var profileRaw = localStorage.getItem('talaty_profile_v1');
+      if (profileRaw) {
+        var profile = JSON.parse(profileRaw);
+        if (!rawAge    && profile && profile.ageGroup) rawAge    = profile.ageGroup;
+        if (!rawGender && profile && profile.gender)   rawGender = profile.gender;
+      }
+    }
+
+    /* Parse age: accepts "22", "18-24", "45+" */
+    if (rawAge) {
+      var a = normaliseStr(String(rawAge));
+      var range = a.match(/^(\d{1,3})\s*-\s*(\d{1,3})$/);
+      var plus  = a.match(/^(\d{1,3})\s*\+$/);
+      var exact = a.match(/^(\d{1,3})$/);
+      if (range)      { out.ageMin = +range[1]; out.ageMax = +range[2]; }
+      else if (plus)  { out.ageMin = +plus[1];  out.ageMax = 150;       }
+      else if (exact) { out.ageMin = +exact[1]; out.ageMax = +exact[1]; }
+    }
+
+    /* Parse gender via synonym map */
+    if (rawGender) {
+      var g = normaliseStr(String(rawGender));
+      out.gender = USER_GENDER_SYNONYMS[g] || null;
+    }
+  } catch (e) { /* corrupted storage ⇒ stay null ⇒ everything passes */ }
+  return out;
+}
+
+/* ── Gender gate ──  true = place allowed */
+function matchesGender(placeGenders, userGender) {
+  if (!userGender) return true;                          /* unknown user   */
+  if (!placeGenders || placeGenders.length === 0) return true; /* empty cell */
+  return placeGenders.some(function(t) {
+    var restriction = TARGET_GENDER_SYNONYMS[normaliseStr(t)];
+    if (!restriction || restriction === 'all') return true; /* unknown/all */
+    return restriction === userGender;
+  });
+}
+
+/* ── Age gate ──  true = place allowed.
+   Uses RANGE-OVERLAP so a "25-34" user matches BOTH شباب (13-29)
+   and عائلات (25+) — never punishes boundary users. */
+function matchesAge(placeAges, userDemo) {
+  if (userDemo.ageMin === null) return true;             /* unknown user   */
+  if (!placeAges || placeAges.length === 0) return true; /* empty cell     */
+  return placeAges.some(function(t) {
+    var key = normaliseStr(t);
+    if (key === 'للجميع' || key === 'الجميع' || key === 'all') return true;
+    var band = TARGET_AGE_BANDS[key];
+    if (!band) return true;                              /* unknown vocab  */
+    return userDemo.ageMin <= band.max && userDemo.ageMax >= band.min;
+  });
+}
+
+/* ── Combined gate used by BOTH engines ── */
+function passesDemographics(place, userDemo) {
+  if (!matchesGender(place.targetGender, userDemo.gender)) {
+    if (window.TALATY_DEBUG) {
+      console.log('[Talaty Demo] SKIP "' + place.title + '" — gender: user="' +
+        userDemo.gender + '" | DB=' + JSON.stringify(place.targetGender));
+    }
+    return false;
+  }
+  if (!matchesAge(place.targetAge, userDemo)) {
+    if (window.TALATY_DEBUG) {
+      console.log('[Talaty Demo] SKIP "' + place.title + '" — age: user=[' +
+        userDemo.ageMin + '-' + userDemo.ageMax + '] | DB=' + JSON.stringify(place.targetAge));
+    }
+    return false;
+  }
+  return true;
+}
+
+/* ══════════════════════════════════════════════════════════════
    NORMALISE ONE PAPAPARSE ROW → typed place object
 ══════════════════════════════════════════════════════════════ */
 function normalizeRow(row) {
@@ -139,6 +264,9 @@ function normalizeRow(row) {
     budget:       splitCsvField(row.budget),        /* budget labels used verbatim in UI */
     time:         splitCsvField(row.time),          /* morning/evening/night — exact */
     audience:     splitCsvField(row.audience, AUDIENCE_SYNONYMS),
+    /* v8 demographics — empty cell ⇒ [] ⇒ treated as 'للجميع' */
+    targetAge:    splitCsvField(row.target_age),
+    targetGender: splitCsvField(row.target_gender),
     pills:        row.pills
                     ? row.pills.split(',').map(function(p) { return normaliseStr(p); })
                     : [],
@@ -406,6 +534,10 @@ function normalizeTravelRow(row) {
     flag:    (row.flag || '').trim() || COUNTRY_FLAGS[country] || '✈️',
     mapQuery:(row.mapQuery || '').trim(),
 
+    /* v8 demographics — pipe/comma multi-value, empty ⇒ pass-all */
+    targetAge:    splitCsvField(row.target_age || ''),
+    targetGender: splitCsvField(row.target_gender || ''),
+
     /* mood/budget: single value in the sheet, but pipe-separated
        multi-values are also accepted (e.g. "استرخاء|رومانسي") */
     mood: (row.mood || '').split('|')
@@ -523,6 +655,7 @@ function filterTravelDestinations(moodKey, budgetKey) {
   var userTokens  = [normaliseStr(userCountry)];
   var natForm     = COUNTRY_TO_NATIONALITY[userCountry];
   if (natForm) userTokens.push(normaliseStr(natForm));
+  var userDemo = resolveUserDemographics(); /* v8 demographics */
 
   return travelDestinations.filter(function(d) {
     if (d.mood.indexOf(nMood) === -1) {
@@ -545,6 +678,7 @@ function filterTravelDestinations(moodKey, budgetKey) {
       }
       return false;
     }
+    if (!passesDemographics(d, userDemo)) return false;
     return true;
   });
 }
@@ -585,6 +719,7 @@ function filterStrict(cityKey, moodKey, budgetKey, timeKey, audience) {
   var nBudget   = normaliseStr(budgetKey);
   var nTime     = timeKey ? normaliseStr(timeKey) : null;
   var nAudience = normaliseStr(audience);
+  var userDemo  = resolveUserDemographics(); /* v8: read once per run */
 
   var matched = [];
 
@@ -662,6 +797,9 @@ function filterStrict(cityKey, moodKey, budgetKey, timeKey, audience) {
       }
       return;
     }
+
+    /* --- demographics check (age + gender, defensive) --------------- */
+    if (!passesDemographics(p, userDemo)) return;
 
     /* --- all checks passed ----------------------------------------- */
     if (window.TALATY_DEBUG) {
@@ -1422,7 +1560,8 @@ document.getElementById('save-wallet-btn').addEventListener('click', function() 
       if (targetScreen) targetScreen.classList.add('is-active');
 
       // 5. تحديث المحفظة عند الانتقال إليها
-      if (targetId === 'screen-wallet') renderWallet();
+      if (targetId === 'screen-wallet')   renderWallet();
+      if (targetId === 'screen-settings') syncSettingsAccountCard();
 
       // 6. تمرير للأعلى بنعومة
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -1455,28 +1594,44 @@ function showToast(message, type, duration) {
 /* ══════════════════════════════════════════════════════════════
    SETTINGS — صندوق الاقتراحات
 ══════════════════════════════════════════════════════════════ */
-document.getElementById('suggestions-submit-btn').addEventListener('click', function() {
+(function initSuggestionsBox() {
   var textarea = document.getElementById('suggestions-textarea');
-  var text = (textarea.value || '').trim();
+  var sendBtn  = document.getElementById('suggestions-submit-btn');
+  var spinner  = document.getElementById('suggestions-spinner');
+  var label    = document.getElementById('suggestions-submit-label');
+  if (!textarea || !sendBtn) return;
 
-  if (!text) {
-    textarea.style.borderColor = 'rgba(255,107,107,0.70)';
-    textarea.style.boxShadow   = '0 0 0 3px rgba(255,107,107,0.10)';
+  /* Send button stays disabled until there's real text — v2 UX */
+  function updateSendState() {
+    var hasText = textarea.value.trim().length > 0;
+    sendBtn.disabled = !hasText || sendBtn.classList.contains('is-sending');
+  }
+  textarea.addEventListener('input', updateSendState);
+  updateSendState(); /* set correct initial state on page load */
+
+  sendBtn.addEventListener('click', function() {
+    var text = textarea.value.trim();
+    if (!text || sendBtn.classList.contains('is-sending')) return;
+
+    sendBtn.classList.add('is-sending');
+    sendBtn.disabled = true;
+    if (spinner) spinner.style.display = 'inline-block';
+    if (label)   label.textContent = 'جارٍ الإرسال...';
+
     setTimeout(function() {
-      textarea.style.borderColor = '';
-      textarea.style.boxShadow   = '';
-    }, 1200);
-    textarea.focus();
-    return;
-  }
+      sendBtn.classList.remove('is-sending');
+      if (spinner) spinner.style.display = 'none';
+      if (label)   label.textContent = 'إرسال';
+      textarea.value = '';
+      updateSendState();
+      showToast('تم إرسال اقتراحك بنجاح، شكراً لك!', 'success', 3200);
 
-  textarea.value = '';
-  showToast('تم إرسال اقتراحك بنجاح، شكراً لك!', 'success', 3200);
-
-  if (typeof gtag === 'function') {
-    gtag('event', 'suggestion_submitted', { text_length: text.length });
-  }
-});
+      if (typeof gtag === 'function') {
+        gtag('event', 'suggestion_submitted', { text_length: text.length });
+      }
+    }, 850);
+  });
+})();
 
 /* ══════════════════════════════════════════════════════════════
    SETTINGS — تفريغ المحفظة
@@ -1613,6 +1768,73 @@ function syncProfileUI() {
   if (gamiDiscoverEl) gamiDiscoverEl.textContent = discoverCount;
   if (gamiVisitedEl)  gamiVisitedEl.textContent  = visitedCount;
   if (gamiRankEl)      gamiRankEl.textContent     = rank;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   SETTINGS v2 — Account card sync
+   Reflects the saved profile (name → avatar initials + copy)
+   every time the Settings screen is opened. Fully defensive:
+   every element lookup is null-checked, safe to call anytime.
+══════════════════════════════════════════════════════════════ */
+function syncSettingsAccountCard() {
+  var profile = getProfile();
+  var name    = (profile && profile.name) ? profile.name.trim() : '';
+
+  var titleEl    = document.getElementById('stg-account-title');
+  var descEl     = document.getElementById('stg-account-desc');
+  var btnEl      = document.getElementById('stg-account-btn');
+  var iconEl     = document.getElementById('stg-account-avatar-icon');
+  var initialsEl = document.getElementById('stg-account-initials');
+
+  if (name) {
+    if (titleEl)    titleEl.textContent = name;
+    if (descEl)     descEl.textContent  = 'عدّل بياناتك أو راجع إنجازاتك في أي وقت';
+    if (btnEl)      btnEl.textContent   = 'فتح ملفي الشخصي';
+    if (iconEl)      iconEl.style.display = 'none';
+    if (initialsEl) {
+      initialsEl.textContent   = getInitials(name);
+      initialsEl.style.display = 'flex';
+    }
+  } else {
+    if (titleEl)    titleEl.textContent = 'ملفك الشخصي';
+    if (descEl)     descEl.textContent  = 'أنشئ ملفك لحفظ تفضيلاتك وتخصيص توصياتك';
+    if (btnEl)      btnEl.textContent   = 'إنشاء ملفي الشخصي';
+    if (iconEl)      iconEl.style.display = 'block';
+    if (initialsEl) initialsEl.style.display = 'none';
+  }
+}
+
+/* Account card button → reuse the exact same flow as the header
+   profile button (deactivate nav, show screen-profile, sync UI) */
+var stgAccountBtn = document.getElementById('stg-account-btn');
+if (stgAccountBtn) {
+  stgAccountBtn.addEventListener('click', function() {
+    var headerProfileBtn = document.getElementById('profile-btn');
+    if (headerProfileBtn) headerProfileBtn.click();
+  });
+}
+
+/* Appearance / Language / Support — friendly placeholders.
+   Real dark-mode + English need app-wide work beyond this screen,
+   and Support has no live channel configured yet, so each shows
+   an honest "coming soon" toast instead of pretending to work. */
+var stgDarkToggle = document.getElementById('stg-dark-toggle');
+if (stgDarkToggle) {
+  stgDarkToggle.addEventListener('click', function() {
+    showToast('الوضع الداكن قادم قريبًا 🌙', 'success', 2400);
+  });
+}
+var stgLangEnBtn = document.getElementById('stg-lang-en-btn');
+if (stgLangEnBtn) {
+  stgLangEnBtn.addEventListener('click', function() {
+    showToast('دعم اللغة الإنجليزية قادم قريبًا 🌍', 'success', 2400);
+  });
+}
+var stgSupportBtn = document.getElementById('stg-support-btn');
+if (stgSupportBtn) {
+  stgSupportBtn.addEventListener('click', function() {
+    showToast('لتواصل أسرع، استخدم صندوق الاقتراحات بالأعلى وسيصلنا فوراً 💬', 'success', 3200);
+  });
 }
 
 /* ── Profile screen activation via top-left header button ── */
@@ -2085,32 +2307,24 @@ syncProfileUI();
 
 /* ╔══════════════════════════════════════════════════════════════╗
    ║  SPLASH SCREEN v5.0 (RESTORED) — UI ONLY, isolated           ║
-   ║  Re-applied because the uploaded working copy was v7          ║
-   ║  (missing this layer). Content identical to what was          ║
-   ║  delivered before. Zero interaction with core data logic.     ║
    ╚══════════════════════════════════════════════════════════════╝ */
 (function () {
   'use strict';
-
   var splash = document.getElementById('splash-screen');
   var btn    = document.getElementById('splash-cta-btn');
   if (!splash || !btn) return;
-
   var SPLASH_SEEN_KEY = 'talaty_splash_seen_v1';
-
   function closeSplash() {
     splash.classList.add('is-closed');
     if (navigator.vibrate) navigator.vibrate(14);
-    try { sessionStorage.setItem(SPLASH_SEEN_KEY, '1'); } catch (e) { /* non-fatal */ }
+    try { sessionStorage.setItem(SPLASH_SEEN_KEY, '1'); } catch (e) {}
     setTimeout(function () { splash.setAttribute('aria-hidden', 'true'); }, 700);
   }
-
   btn.addEventListener('click', closeSplash);
-
   try {
     if (sessionStorage.getItem(SPLASH_SEEN_KEY) === '1') {
       splash.classList.add('is-closed');
       splash.setAttribute('aria-hidden', 'true');
     }
-  } catch (e) { /* storage unavailable — splash just shows normally */ }
+  } catch (e) {}
 })();
