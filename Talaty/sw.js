@@ -10,15 +10,25 @@
 
 'use strict';
 
-var CACHE_VERSION = 'talaty-v10';
+var CACHE_VERSION = 'talaty-v12';
 
+/* Core shell — same-origin, MUST all cache or install fails (correct:
+   a half-cached app shell is worse than retrying the install). */
 var SHELL_URLS = [
   './',
   './index.html',
-  './style.css?v=10',
-  './script.js?v=10',
-  './manifest.json',
-  'https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js'
+  './style.css?v=12',
+  './script.js?v=12',
+  './manifest.json'
+];
+
+/* Cross-origin CDN assets — best-effort. If a CDN is briefly down at
+   install time we must NOT brick the whole SW install; the browser
+   will simply fetch these from network (and runtime-cache them) later. */
+var CDN_URLS = [
+  'https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js',
+  'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css',
+  'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'
 ];
 
 var PASSTHROUGH_HOSTS = [
@@ -32,7 +42,14 @@ var PASSTHROUGH_HOSTS = [
 self.addEventListener('install', function(event) {
   event.waitUntil(
     caches.open(CACHE_VERSION)
-      .then(function(cache) { return cache.addAll(SHELL_URLS); })
+      .then(function(cache) {
+        return cache.addAll(SHELL_URLS).then(function() {
+          /* best-effort CDN precache — individual failures swallowed */
+          return Promise.all(CDN_URLS.map(function(url) {
+            return cache.add(url).catch(function() { /* runtime fetch later */ });
+          }));
+        });
+      })
       .then(function() { return self.skipWaiting(); })
   );
 });

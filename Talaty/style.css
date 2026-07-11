@@ -15,10 +15,27 @@
   --teal-lt:     #E6FAF8;
   --gold:        #F59E0B;
   --text:        #1A1A2E;
+  --text-1:      #1A1A2E;
   --text-2:      #4B5563;
+  --text-3:      #9CA3AF;
   --muted:       #9CA3AF;
   --border:      rgba(0,0,0,0.07);
   --border-focus:rgba(67,97,238,0.35);
+
+  /* Ocean Breeze — Discover screen accent (sky blue → turquoise) */
+  --ocean-sky:      #0EA5E9;
+  --ocean-sky-lt:   #E0F5FE;
+  --ocean-gradient: linear-gradient(135deg, var(--ocean-sky) 0%, var(--teal) 100%);
+  --ocean-shadow:   rgba(14,165,233,0.32);
+
+  /* Neutral hardcoded greys used by inputs/borders — tokenized so
+     dark mode can repaint them (see html[data-theme="dark"] below) */
+  --line:        #E5E7EB;
+  --line-soft:   #E9EBF0;
+  --track-off:   #E5E7EB;
+  --white-solid: #FFFFFF;
+  --surface-rgb: 255,255,255;
+  --travel-bg-gradient: linear-gradient(180deg, #E7F3FF 0%, #F0F2F8 46%);
 
   /* Shadows — 3-layer system */
   --sh-xs: 0 1px 2px rgba(0,0,0,0.04);
@@ -40,6 +57,57 @@
   --dur-fast:    0.15s;
   --dur-med:     0.25s;
   --dur-slow:    0.4s;
+}
+
+/* ============================================================
+   DARK THEME — real, app-wide token override
+   Applied via [data-theme="dark"] on <html>, set by settings.js
+   BEFORE first paint (inline script in <head>) to avoid flash.
+   Every screen consumes these same tokens, so repainting them
+   here re-themes the whole app in one place — no per-screen work.
+============================================================ */
+html[data-theme="dark"] {
+  --bg:          #0F1220;
+  --surface:     #1A1E2E;
+  --surface-2:   #232838;
+  --accent:      #6C87FB;
+  --accent-dk:   #8FA3FF;
+  --accent-lt:   rgba(108,135,251,0.16);
+  --coral:       #FF8080;
+  --coral-lt:    rgba(255,128,128,0.14);
+  --teal:        #2DD9C7;
+  --teal-lt:     rgba(45,217,199,0.14);
+  --gold:        #FBBF24;
+  --text:        #F0F2F8;
+  --text-1:      #F0F2F8;
+  --text-2:      #B8BEC9;
+  --text-3:      #767C8C;
+  --muted:       #767C8C;
+  --border:      rgba(255,255,255,0.09);
+  --border-focus:rgba(108,135,251,0.45);
+
+  --ocean-sky:    #3CC6F0;
+  --ocean-sky-lt: rgba(60,198,240,0.16);
+  --ocean-shadow: rgba(0,0,0,0.45);
+
+  --line:        #333A4D;
+  --line-soft:   #2B3145;
+  --track-off:   #333A4D;
+  --white-solid: #1A1E2E;
+  --surface-rgb: 26,30,46;
+  --travel-bg-gradient: linear-gradient(180deg, #16233F 0%, #0F1220 46%);
+
+  --sh-xs: 0 1px 2px rgba(0,0,0,0.35);
+  --sh-sm: 0 2px 10px rgba(0,0,0,0.40), 0 1px 3px rgba(0,0,0,0.25);
+  --sh-md: 0 4px 18px rgba(0,0,0,0.45), 0 1px 5px rgba(0,0,0,0.28);
+  --sh-lg: 0 12px 40px rgba(0,0,0,0.50), 0 4px 14px rgba(0,0,0,0.30);
+  --sh-accent: 0 6px 20px rgba(108,135,251,0.38);
+}
+/* Smooth cross-fade whenever the theme flips instead of a hard cut */
+html[data-theme], html[data-theme] body, html[data-theme] .stg-card,
+html[data-theme] .filter-card, html[data-theme] .pf-form-card,
+html[data-theme] .wallet-card, html[data-theme] .cinematic-header {
+  transition: background-color 0.35s ease, border-color 0.35s ease, color 0.35s ease, box-shadow 0.35s ease;
 }
 
 /* ===== BASE ===== */
@@ -75,7 +143,7 @@ body {
   animation: blob-drift 14s ease-in-out infinite alternate;
   will-change: transform;
 }
-.bg-blob-1 { width: 380px; height: 380px; background: var(--accent); top: -100px; right: -80px; animation-delay: 0s; }
+.bg-blob-1 { width: 380px; height: 380px; background: var(--ocean-sky); top: -100px; right: -80px; animation-delay: 0s; }
 .bg-blob-2 { width: 280px; height: 280px; background: var(--coral);  bottom: 80px; left: -80px; animation-delay: -6s; }
 .bg-blob-3 { width: 220px; height: 220px; background: var(--teal);   top: 45%; left: 45%;      animation-delay: -10s; }
 
@@ -111,13 +179,13 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: var(--accent-lt);
-  border: 1px solid rgba(67,97,238,0.20);
+  background: var(--ocean-sky-lt);
+  border: 1px solid rgba(14,165,233,0.22);
   border-radius: var(--r-full);
   padding: 5px 14px;
   font-size: 12px;
   font-weight: 700;
-  color: var(--accent);
+  color: var(--ocean-sky);
   margin-bottom: 18px;
   letter-spacing: 0.4px;
 }
@@ -159,13 +227,13 @@ body {
 .step-dot {
   width: 8px; height: 8px;
   border-radius: 50%;
-  background: #D1D5DB;
+  background: var(--line);
   transition: all var(--dur-med) var(--ease-spring);
 }
 .step-dot.active {
   width: 24px;
   border-radius: var(--r-full);
-  background: var(--accent);
+  background: var(--ocean-sky);
 }
 .step-dot.done {
   background: var(--teal);
@@ -181,11 +249,15 @@ body {
   border-radius: var(--r-xl);
   padding: 20px 18px 18px;
   box-shadow: var(--sh-sm);
-  transition: border-color var(--dur-med), box-shadow var(--dur-med);
+  transition: border-color var(--dur-med), box-shadow var(--dur-med), transform var(--dur-med) var(--ease-out);
+}
+.filter-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--sh-md);
 }
 .filter-card.focused {
-  border-color: var(--border-focus);
-  box-shadow: var(--sh-md), 0 0 0 3px rgba(67,97,238,0.07);
+  border-color: var(--ocean-sky);
+  box-shadow: var(--sh-md), 0 0 0 3px var(--ocean-sky-lt);
 }
 .filter-card.error {
   border-color: rgba(255,107,107,0.60);
@@ -260,9 +332,9 @@ body {
   right: 4px;                 /* RTL: starts on the right (طلعة محلية is first) */
   width: calc(50% - 4px);
   height: calc(100% - 8px);
-  background: linear-gradient(135deg, var(--accent) 0%, #5B6FF0 100%);
+  background: var(--ocean-gradient);
   border-radius: var(--r-full);
-  box-shadow: 0 3px 12px rgba(67,97,238,0.35);
+  box-shadow: 0 3px 12px var(--ocean-shadow);
   transition: transform var(--dur-med) var(--ease-spring);
 }
 /* When travel mode active, slide thumb to the left side (RTL) */
@@ -324,8 +396,8 @@ body {
   gap: 5px;
   font-size: 12px;
   font-weight: 700;
-  color: var(--accent);
-  background: var(--accent-lt);
+  color: var(--ocean-sky);
+  background: var(--ocean-sky-lt);
   padding: 4px 11px;
   border-radius: var(--r-full);
   margin-bottom: 10px;
@@ -359,13 +431,13 @@ body {
 
 .city-pill {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
-  gap: 5px;
+  gap: 7px;
   flex-shrink: 0;
-  padding: 12px 18px 10px;
-  border-radius: var(--r-full);
-  border: 1.5px solid #E5E7EB;
+  padding: 11px 16px 11px 14px;
+  border-radius: 16px;
+  border: 1.5px solid var(--line);
   background: var(--surface);
   color: var(--text-2);
   font-family: 'Cairo', sans-serif;
@@ -382,42 +454,56 @@ body {
 .city-pill-emoji {
   font-size: 20px;
   line-height: 1;
-  display: block;
-  transition: transform var(--dur-fast) var(--ease-spring);
+  width: 28px; height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface-2);
+  border-radius: 9px;
+  flex-shrink: 0;
+  transition: transform var(--dur-fast) var(--ease-spring), background var(--dur-fast) ease;
 }
+.city-pill.active .city-pill-emoji { background: rgba(255,255,255,0.22); }
 .city-pill-name { line-height: 1; }
 
-.city-pill:active { transform: scale(0.92); }
+.city-pill:active { transform: scale(0.94); }
 .city-pill:hover {
-  border-color: var(--accent);
-  color: var(--accent);
-  background: var(--accent-lt);
+  border-color: var(--ocean-sky);
+  color: var(--ocean-sky);
+  background: var(--ocean-sky-lt);
   box-shadow: var(--sh-sm);
+  transform: translateY(-2px);
 }
 .city-pill:hover .city-pill-emoji { transform: scale(1.18) translateY(-2px); }
 .city-pill.active {
-  background: var(--accent);
-  border-color: var(--accent);
+  background: var(--ocean-gradient);
+  border-color: transparent;
   color: #fff;
-  box-shadow: var(--sh-accent);
-  transform: translateY(-2px);
+  box-shadow: 0 8px 20px var(--ocean-shadow);
+  transform: translateY(-2px) scale(1.04);
+  animation: tap-pop 0.30s var(--ease-spring);
 }
 .city-pill.active .city-pill-emoji { transform: scale(1.10); }
 
 /* ===== BUDGET STEPPED SLIDER ===== */
 .budget-label-wrap {
+  position: absolute;
+  top: 0;
+  left: 15px; /* JS (positionBudgetLabel) overrides this to track the thumb */
+  transform: translateX(-50%);
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  margin-bottom: 18px;
-  min-height: 36px;
+  gap: 8px;
+  white-space: nowrap;
+  transition: left 0.18s var(--ease-out);
 }
 .budget-label-text {
-  font-size: 17px;
+  font-size: 15px;
   font-weight: 900;
   color: var(--text);
   transition: all 0.2s var(--ease-out);
+  white-space: nowrap;
 }
 .budget-label-badge {
   display: inline-flex;
@@ -438,9 +524,11 @@ body {
 .budget-label-badge.step-2 { background: #FEF3C7; color: #92400E; }
 .budget-label-badge.step-3 { background: var(--coral-lt); color: var(--coral); }
 
-/* The slider-wrap already sets direction:ltr — reuse it */
+/* The slider-wrap already sets direction:ltr — reuse it.
+   padding-top makes room for the floating label above the track. */
 .budget-slider-wrap {
-  padding: 0 4px;
+  padding: 46px 4px 0;
+  position: relative;
 }
 
 /* Stepped budget slider — larger thumb for precision snapping */
@@ -448,28 +536,28 @@ body {
   height: 6px;
   border-radius: var(--r-full);
   /* The JS will update the background gradient */
-  background: #E5E7EB;
+  background: var(--line);
   cursor: pointer;
 }
 #budget-slider::-webkit-slider-thumb {
   -webkit-appearance: none;
   width: 30px; height: 30px;
   border-radius: 50%;
-  background: var(--accent);
-  box-shadow: 0 2px 12px rgba(67,97,238,0.45);
+  background: var(--ocean-sky);
+  box-shadow: 0 2px 12px var(--ocean-shadow);
   border: 3.5px solid #fff;
   cursor: pointer;
   transition: transform var(--dur-fast) var(--ease-spring), box-shadow var(--dur-fast);
 }
 #budget-slider::-webkit-slider-thumb:active {
   transform: scale(1.30);
-  box-shadow: 0 4px 20px rgba(67,97,238,0.55);
+  box-shadow: 0 4px 20px var(--ocean-shadow);
 }
 #budget-slider::-moz-range-thumb {
   width: 30px; height: 30px;
   border-radius: 50%;
-  background: var(--accent);
-  box-shadow: 0 2px 12px rgba(67,97,238,0.45);
+  background: var(--ocean-sky);
+  box-shadow: 0 2px 12px var(--ocean-shadow);
   border: 3.5px solid #fff;
   cursor: pointer;
 }
@@ -499,7 +587,7 @@ body {
 .chip {
   padding: 10px 8px;
   border-radius: var(--r-md);
-  border: 1.5px solid #E9EBF0;
+  border: 1.5px solid var(--line-soft);
   background: var(--surface-2);
   color: var(--text-2);
   font-family: 'Cairo', sans-serif;
@@ -512,13 +600,13 @@ body {
   user-select: none;
 }
 .chip:active { transform: scale(0.94); }
-.chip:hover  { border-color: var(--accent); color: var(--accent); background: var(--accent-lt); }
+.chip:hover  { border-color: var(--ocean-sky); color: var(--ocean-sky); background: var(--ocean-sky-lt); }
 .chip.active {
-  background: var(--accent);
-  border-color: var(--accent);
+  background: var(--ocean-gradient);
+  border-color: transparent;
   color: #fff;
-  box-shadow: var(--sh-accent);
-  transform: translateY(-1px);
+  box-shadow: 0 6px 18px var(--ocean-shadow);
+  transform: translateY(-2px);
 }
 
 /* ===== MOOD GRID ===== */
@@ -533,8 +621,8 @@ body {
   align-items: center;
   gap: 7px;
   padding: 14px 6px 12px;
-  border-radius: var(--r-md);
-  border: 1.5px solid #E9EBF0;
+  border-radius: 18px;
+  border: 1.5px solid var(--line-soft);
   background: var(--surface-2);
   color: var(--text-2);
   font-family: 'Cairo', sans-serif;
@@ -557,16 +645,21 @@ body {
   border-color: var(--coral);
   color: var(--coral);
   background: var(--coral-lt);
+  transform: translateY(-2px);
 }
 .mood-btn:hover .mood-icon { transform: scale(1.12); }
 .mood-btn.active {
   background: var(--coral-lt);
   border-color: var(--coral);
   color: var(--coral);
-  box-shadow: 0 4px 14px rgba(255,107,107,0.22);
-  transform: translateY(-1px);
+  box-shadow: 0 0 0 1px rgba(255,107,107,0.30), 0 8px 20px rgba(255,107,107,0.22);
+  transform: translateY(-2px) scale(1.04);
+  animation: tap-pop 0.30s var(--ease-spring);
 }
-.mood-btn.active .mood-icon { transform: scale(1.08); }
+.mood-btn.active .mood-icon {
+  transform: scale(1.08);
+  filter: drop-shadow(0 0 5px rgba(255,107,107,0.45));
+}
 
 /* ===== DISTANCE SLIDER ===== */
 .distance-display {
@@ -579,7 +672,7 @@ body {
 .distance-display .km {
   font-size: 40px;
   font-weight: 900;
-  color: var(--accent);
+  color: var(--ocean-sky);
   line-height: 1;
   font-variant-numeric: tabular-nums;
   transition: color var(--dur-fast);
@@ -603,7 +696,7 @@ input[type="range"] {
   width: 100%;
   height: 5px;
   border-radius: var(--r-full);
-  background: #E5E7EB;
+  background: var(--line);
   outline: none;
   cursor: pointer;
   display: block;
@@ -612,21 +705,21 @@ input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none;
   width: 26px; height: 26px;
   border-radius: 50%;
-  background: var(--accent);
-  box-shadow: 0 2px 10px rgba(67,97,238,0.40);
+  background: var(--ocean-sky);
+  box-shadow: 0 2px 10px var(--ocean-shadow);
   border: 3px solid #fff;
   cursor: pointer;
   transition: transform var(--dur-fast) var(--ease-spring), box-shadow var(--dur-fast);
 }
 input[type="range"]::-webkit-slider-thumb:active {
   transform: scale(1.25);
-  box-shadow: 0 4px 16px rgba(67,97,238,0.50);
+  box-shadow: 0 4px 16px var(--ocean-shadow);
 }
 input[type="range"]::-moz-range-thumb {
   width: 26px; height: 26px;
   border-radius: 50%;
-  background: var(--accent);
-  box-shadow: 0 2px 10px rgba(67,97,238,0.40);
+  background: var(--ocean-sky);
+  box-shadow: 0 2px 10px var(--ocean-shadow);
   border: 3px solid #fff;
   cursor: pointer;
 }
@@ -634,6 +727,8 @@ input[type="range"]::-moz-range-thumb {
   display: flex;
   justify-content: space-between;
   padding: 7px 2px 0;
+  direction: ltr; /* must match .slider-wrap's forced LTR so "1 km" sits
+                     under the low end of the thumb and "50 km" under the high end */
 }
 .distance-ticks span { font-size: 10px; color: var(--muted); }
 
@@ -647,7 +742,7 @@ input[type="range"]::-moz-range-thumb {
   padding: 19px 20px;
   border-radius: var(--r-lg);
   border: none;
-  background: linear-gradient(135deg, var(--accent) 0%, #5B6FF0 100%);
+  background: var(--ocean-gradient);
   color: #fff;
   font-family: 'Cairo', sans-serif;
   font-size: 18px;
@@ -660,9 +755,10 @@ input[type="range"]::-moz-range-thumb {
               box-shadow var(--dur-fast),
               filter var(--dur-fast);
   -webkit-tap-highlight-color: transparent;
-  box-shadow: 0 4px 18px rgba(67,97,238,0.35), 0 1px 3px rgba(0,0,0,0.10);
+  box-shadow: 0 10px 28px var(--ocean-shadow), 0 2px 8px rgba(0,0,0,0.10);
 }
-/* Subtle shine overlay — animated sweep every 3s */
+/* Subtle shine overlay — the ONE motion accent on this button (single
+   animation, replaces the old rainbow-cycle + pulsing-glow combo) */
 .cta-btn::before {
   content: '';
   position: absolute;
@@ -672,7 +768,7 @@ input[type="range"]::-moz-range-thumb {
   background: linear-gradient(
     120deg,
     transparent 0%,
-    rgba(255,255,255,0.28) 50%,
+    rgba(255,255,255,0.30) 50%,
     transparent 100%
   );
   pointer-events: none;
@@ -693,12 +789,12 @@ input[type="range"]::-moz-range-thumb {
 .cta-btn::after { content: none; }
 .cta-btn:hover  {
   transform: translateY(-2px);
-  box-shadow: 0 8px 28px rgba(67,97,238,0.42), 0 2px 6px rgba(0,0,0,0.10);
+  box-shadow: 0 14px 36px var(--ocean-shadow), 0 3px 10px rgba(0,0,0,0.10);
   filter: brightness(1.06);
 }
 .cta-btn:active {
   transform: translateY(1px) scale(0.985);
-  box-shadow: 0 2px 8px rgba(67,97,238,0.28);
+  box-shadow: 0 4px 14px var(--ocean-shadow);
   filter: brightness(0.97);
 }
 
@@ -723,7 +819,7 @@ input[type="range"]::-moz-range-thumb {
   margin-top: 20px;
   padding: 22px 20px;
   background: var(--surface);
-  border: 1.5px solid rgba(67,97,238,0.18);
+  border: 1.5px solid var(--ocean-sky-lt);
   border-radius: var(--r-xl);
   box-shadow: var(--sh-lg);
   display: none;
@@ -747,10 +843,10 @@ input[type="range"]::-moz-range-thumb {
 .result-badge {
   font-size: 10px;
   font-weight: 800;
-  color: var(--accent);
+  color: var(--ocean-sky);
   text-transform: uppercase;
   letter-spacing: 1.4px;
-  background: var(--accent-lt);
+  background: var(--ocean-sky-lt);
   padding: 3px 10px;
   border-radius: var(--r-full);
 }
@@ -791,15 +887,15 @@ input[type="range"]::-moz-range-thumb {
 /* ===== DISCOUNT BOX ===== */
 .discount-box {
   margin-top: 18px;
-  background: linear-gradient(135deg, var(--accent-lt) 0%, var(--teal-lt) 100%);
-  border: 1.5px dashed rgba(67,97,238,0.28);
+  background: linear-gradient(135deg, var(--ocean-sky-lt) 0%, var(--teal-lt) 100%);
+  border: 1.5px dashed rgba(14,165,233,0.30);
   border-radius: var(--r-lg);
   padding: 14px 16px 13px;
 }
 .discount-label {
   font-size: 10px;
   font-weight: 800;
-  color: var(--accent);
+  color: var(--ocean-sky);
   letter-spacing: 1px;
   text-transform: uppercase;
   margin-bottom: 8px;
@@ -820,9 +916,9 @@ input[type="range"]::-moz-range-thumb {
 .copy-btn {
   padding: 7px 15px;
   border-radius: var(--r-sm);
-  border: 1.5px solid var(--accent);
+  border: 1.5px solid var(--ocean-sky);
   background: transparent;
-  color: var(--accent);
+  color: var(--ocean-sky);
   font-family: 'Cairo', sans-serif;
   font-size: 13px;
   font-weight: 700;
@@ -832,7 +928,7 @@ input[type="range"]::-moz-range-thumb {
   flex-shrink: 0;
   -webkit-tap-highlight-color: transparent;
 }
-.copy-btn:hover  { background: var(--accent); color: #fff; }
+.copy-btn:hover  { background: var(--ocean-sky); color: #fff; }
 .copy-btn:active { transform: scale(0.94); }
 .copy-btn.copied { background: var(--teal); border-color: var(--teal); color: #fff; }
 .discount-note { font-size: 12px; color: var(--text-2); margin-top: 7px; }
@@ -963,12 +1059,14 @@ input[type="range"]::-moz-range-thumb {
   .whatsapp-btn::before { animation: none; }
 }
 
-/* ===== WALLET CARDS LIST ===== */
+/* ===== WALLET CARDS LIST =====
+   FIX (this round): same double-padding bug as .settings-body/.pf-wrap
+   above — no horizontal padding here, .page-inner already provides it. */
 .wallet-list {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  padding: 0 18px calc(var(--nav-h) + 24px);
+  padding: 0 0 calc(var(--nav-h) + 24px);
 }
 .wallet-card {
   background: var(--surface);
@@ -1197,6 +1295,38 @@ input[type="range"]::-moz-range-thumb {
 .maps-btn:active { transform: scale(0.97); }
 .maps-btn .map-icon { font-size: 18px; }
 
+/* ── Wego affiliate referral button (travel results only) ──
+   Uses the Ocean Breeze CTA treatment so it reads as a genuine
+   primary action, not an afterthought link. */
+.wego-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 14px;
+  padding: 15px;
+  border-radius: var(--r-lg);
+  background: var(--ocean-gradient);
+  color: #fff;
+  font-family: 'Cairo', sans-serif;
+  font-size: 15px;
+  font-weight: 800;
+  text-decoration: none;
+  box-shadow: 0 8px 22px var(--ocean-shadow);
+  transition: transform var(--dur-fast) var(--ease-spring), box-shadow var(--dur-fast), filter var(--dur-fast);
+  -webkit-tap-highlight-color: transparent;
+}
+.wego-btn:hover  { transform: translateY(-1px); filter: brightness(1.06); }
+.wego-btn:active { transform: scale(0.97); }
+.wego-btn .wego-icon { font-size: 17px; }
+.wego-disclosure {
+  margin-top: 8px;
+  font-size: 10.5px;
+  color: var(--muted);
+  text-align: center;
+  line-height: 1.5;
+}
+
 /* ===== FOOTER ===== */
 .footer-hint {
   margin-top: 36px;
@@ -1236,7 +1366,7 @@ input[type="range"]::-moz-range-thumb {
   max-width: 440px;
   max-height: 90dvh;
   background: var(--surface);
-  border-radius: 28px 28px 0 0;
+  border-radius: 30px 30px 0 0;
   border-top: 1px solid var(--border);
   box-shadow: 0 -8px 40px rgba(0,0,0,0.12), 0 -2px 8px rgba(0,0,0,0.06);
   z-index: 1000;
@@ -1367,11 +1497,11 @@ input[type="range"]::-moz-range-thumb {
   width: 100%; max-width: 440px;
   height: calc(var(--nav-h) + env(safe-area-inset-bottom, 0px));
   padding-bottom: env(safe-area-inset-bottom, 0px);
-  /* White glass — يشبه iOS Dock */
-  background: rgba(255, 255, 255, 0.88);
+  /* Theme-aware glass — يشبه iOS Dock بأي وضع (فاتح/داكن) */
+  background: rgba(var(--surface-rgb), 0.88);
   backdrop-filter: blur(24px) saturate(1.8);
   -webkit-backdrop-filter: blur(24px) saturate(1.8);
-  border-top: 1px solid rgba(0, 0, 0, 0.07);
+  border-top: 1px solid var(--border);
   box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.06),
               0 -1px 4px rgba(0, 0, 0, 0.04);
   display: flex; align-items: stretch;
@@ -1533,12 +1663,21 @@ input[type="range"]::-moz-range-thumb {
    --ease-spring, --sh-md, --sh-accent …) so it matches every
    other screen 1:1 with zero new brand colors introduced.
    Classes are "stg-" prefixed to stay isolated from other screens.
+
+   FIX (this round): .settings-body no longer applies its own
+   horizontal padding — it relies entirely on the existing
+   .page-inner wrapper (max-width:440px; padding:0 18px) that
+   #screen-discover and #screen-profile already use, so all three
+   screens now align exactly. Same class of bug/fix as .pf-wrap
+   above — any horizontal measurement here breaks that alignment.
 ============================================================ */
 .settings-body {
   display: flex;
   flex-direction: column;
   gap: 16px;
-  padding: 0 18px calc(var(--nav-h) + env(safe-area-inset-bottom, 0px) + 24px);
+  /* لا padding أفقي هنا — .page-inner الأب يوفره فعلاً (18px)،
+     تماماً متل شاشة الاكتشاف والبروفايل. */
+  padding: 0 0 calc(var(--nav-h) + env(safe-area-inset-bottom, 0px) + 24px);
 }
 
 .stg-card {
@@ -1624,7 +1763,7 @@ input[type="range"]::-moz-range-thumb {
 /* ---- Suggestions textarea (kept from v1 — already on-brand) ---- */
 .suggestions-textarea {
   width: 100%; min-height: 90px; resize: vertical;
-  border: 1.5px solid #E9EBF0; border-radius: var(--r-md);
+  border: 1.5px solid var(--line-soft); border-radius: var(--r-md);
   padding: 12px 14px; font-family: 'Cairo', sans-serif;
   font-size: 13px; color: var(--text); background: var(--surface-2);
   outline: none; transition: border-color var(--dur-fast), box-shadow var(--dur-fast);
@@ -1636,29 +1775,33 @@ input[type="range"]::-moz-range-thumb {
   box-shadow: 0 0 0 3px rgba(67,97,238,0.08);
 }
 
-/* ---- Dark-mode toggle (visual placeholder — shows a "coming soon"
-   toast on tap instead of a fake-functioning switch; see chat note) ---- */
+/* ---- Dark-mode toggle — now fully functional (real theme switch) ---- */
 .stg-toggle-track {
   width: 46px; height: 26px; border-radius: var(--r-full); border: none; position: relative;
-  cursor: pointer; padding: 0; background: #E5E7EB; flex-shrink: 0;
+  cursor: pointer; padding: 0; background: var(--line); flex-shrink: 0;
   transition: background var(--dur-med) ease, transform var(--dur-fast) var(--ease-spring);
 }
 .stg-toggle-track:active { transform: scale(0.90); }
+.stg-toggle-track.on { background: var(--ocean-gradient); }
 .stg-toggle-thumb {
   width: 20px; height: 20px; border-radius: 50%; background: #FFFFFF; position: absolute;
   top: 3px; left: 3px; box-shadow: 0 1px 4px rgba(0,0,0,0.25);
+  transition: transform var(--dur-med) var(--ease-spring);
 }
+.stg-toggle-track.on .stg-toggle-thumb { transform: translateX(20px); }
 
-/* ---- Language segmented control (AR active / EN → "coming soon") ---- */
+/* ---- Language segmented control — now fully functional ---- */
 .stg-seg-wrap {
-  position: relative; display: flex; background: #E5E7EB; border-radius: var(--r-full);
+  position: relative; display: flex; background: var(--line); border-radius: var(--r-full);
   padding: 3px; width: 80px; height: 28px; direction: ltr; flex-shrink: 0;
 }
 .stg-seg-thumb {
   position: absolute; top: 3px; left: 3px; width: calc(50% - 3px); height: calc(100% - 6px);
   background: linear-gradient(135deg, var(--accent) 0%, var(--teal) 100%);
   border-radius: var(--r-full); box-shadow: var(--sh-accent);
+  transition: transform var(--dur-med) var(--ease-spring);
 }
+.stg-seg-wrap.is-en .stg-seg-thumb { transform: translateX(100%); }
 .stg-seg-btn {
   position: relative; z-index: 2; flex: 1; border: none; background: transparent;
   font-family: 'Inter', 'Cairo', sans-serif; font-size: 11px; font-weight: 800; cursor: pointer;
@@ -1667,6 +1810,8 @@ input[type="range"]::-moz-range-thumb {
   -webkit-tap-highlight-color: transparent;
 }
 .stg-seg-btn.ar { color: #FFFFFF; }
+.stg-seg-wrap.is-en .stg-seg-btn.ar { color: var(--text-2); }
+.stg-seg-wrap.is-en .stg-seg-btn.en { color: #FFFFFF; }
 
 .stg-footer { text-align: center; color: var(--muted); font-size: 12px; font-weight: 500; margin-top: 6px; }
 
@@ -1879,7 +2024,7 @@ input[type="range"]::-moz-range-thumb {
 .profile-input {
   width: 100%;
   padding: 13px 16px;
-  border: 1.5px solid #E9EBF0;
+  border: 1.5px solid var(--line-soft);
   border-radius: var(--r-md);
   background: var(--surface-2);
   font-family: 'Cairo', sans-serif;
@@ -2233,66 +2378,18 @@ input[type="range"]::-moz-range-thumb {
 
 /* ═══ 4c. TRAVEL THEME SHIFT — whole page mood ═══ */
 body { transition: background 0.7s ease; }
-body.travel-theme { background: linear-gradient(180deg, #E7F3FF 0%, #F0F2F8 46%); }
+body.travel-theme { background: var(--travel-bg-gradient); }
 body.travel-theme .bg-blob-1 { background: #57A8EF; }
 body.travel-theme .bg-blob-2 { background: #8ED0FF; }
 body.travel-theme .bg-blob-3 { background: #4361EE; }
 .bg-blob { transition: background 0.9s ease; }
 
-/* ═══ 2. PREMIUM GLASSMORPHISM CARDS ═══ */
-.filter-card {
-  background: rgba(255,255,255,0.74);
-  backdrop-filter: blur(16px) saturate(1.5);
-  -webkit-backdrop-filter: blur(16px) saturate(1.5);
-  border: 1px solid rgba(255,255,255,0.72);
-  box-shadow:
-    0 10px 30px rgba(31,45,120,0.09),
-    0 2px 8px rgba(0,0,0,0.04),
-    inset 0 1px 0 rgba(255,255,255,0.85);
-}
-.filter-card.focused {
-  border-color: rgba(67,97,238,0.45);
-  box-shadow:
-    0 12px 34px rgba(67,97,238,0.14),
-    0 0 0 3px rgba(67,97,238,0.08),
-    inset 0 1px 0 rgba(255,255,255,0.9);
-}
-
-/* city pills — glassy + lift */
-.city-pill {
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  transition: all var(--dur-fast) var(--ease-spring);
-}
-.city-pill:hover { transform: translateY(-2px); }
-
-/* ═══ 2b. NEON-GLOW MOOD SELECTORS ═══ */
-.mood-btn {
-  background: linear-gradient(180deg, rgba(255,255,255,0.9), rgba(247,248,252,0.9));
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.9), 0 1px 3px rgba(0,0,0,0.04);
-}
-.mood-btn:hover { transform: translateY(-2px); }
-.mood-btn.active {
-  background: linear-gradient(180deg, #FFFFFF 0%, var(--coral-lt) 100%);
-  border-color: var(--coral);
-  color: var(--coral);
-  box-shadow:
-    0 0 0 1px rgba(255,107,107,0.40),
-    inset 0 0 16px rgba(255,107,107,0.16),
-    0 10px 26px rgba(255,107,107,0.30);
-  transform: translateY(-2px) scale(1.03);
-}
-.mood-btn.active .mood-icon {
-  transform: scale(1.12);
-  filter: drop-shadow(0 0 6px rgba(255,107,107,0.55));
-}
-
-/* budget slider thumb — soft neon ring (additive, both engines) */
+/* budget slider thumb — soft ocean ring */
 #budget-slider::-webkit-slider-thumb {
-  box-shadow: 0 0 0 6px rgba(67,97,238,0.14), 0 4px 14px rgba(67,97,238,0.45);
+  box-shadow: 0 0 0 6px var(--ocean-sky-lt), 0 4px 14px var(--ocean-shadow);
 }
 #budget-slider::-moz-range-thumb {
-  box-shadow: 0 0 0 6px rgba(67,97,238,0.14), 0 4px 14px rgba(67,97,238,0.45);
+  box-shadow: 0 0 0 6px var(--ocean-sky-lt), 0 4px 14px var(--ocean-shadow);
 }
 
 /* ═══ 3. STAGGERED CASCADE ENTRANCE ═══ */
@@ -2330,172 +2427,33 @@ body.travel-theme .bg-blob-3 { background: #4361EE; }
    ║  PREMIUM MOTION LAYER v4.2 — Tactile & Cinematic Additions   ║
    ╚══════════════════════════════════════════════════════════════╝ */
 
-/* ═══ 1. GLASS BOTTOM SHEET — نتيجة الاكتشاف زجاجية فاخرة ═══ */
-.bottom-sheet {
-  background: rgba(255,255,255,0.84);
-  backdrop-filter: blur(22px) saturate(1.6);
-  -webkit-backdrop-filter: blur(22px) saturate(1.6);
-  border-top: 1px solid rgba(255,255,255,0.80);
-  box-shadow:
-    0 -18px 60px rgba(31,45,120,0.16),
-    0 -4px 16px rgba(0,0,0,0.07),
-    inset 0 1px 0 rgba(255,255,255,0.9);
-}
 .bottom-sheet-overlay {
   backdrop-filter: blur(3px);
   -webkit-backdrop-filter: blur(3px);
 }
 
-/* ═══ 2. TACTILE POP — انتقاء المزاج والمدينة يقفز بتوهج ═══ */
+/* ═══ 2. TACTILE POP — انتقاء المزاج يقفز بتوهج ═══ */
 @keyframes tap-pop {
   0%   { transform: scale(0.92); }
   55%  { transform: scale(1.09); }
   100% { transform: scale(1.05); }
 }
-.mood-btn.active {
-  transform: scale(1.05);
-  animation: tap-pop 0.30s var(--ease-spring);
-}
-.city-pill.active {
-  transform: scale(1.05);
-  animation: tap-pop 0.30s var(--ease-spring);
-  box-shadow:
-    0 0 0 1px rgba(67,97,238,0.35),
-    inset 0 0 12px rgba(67,97,238,0.10),
-    0 8px 22px rgba(67,97,238,0.26);
-}
 
-/* ═══ 3. THE DISCOVER BUTTON — تدرج حي متحرك + هالة + ضغطة مُرضية ═══ */
-.cta-btn {
-  background: linear-gradient(270deg, #4361EE, #5B6FF0, #7C5CFF, #4A8CF7, #4361EE);
-  background-size: 400% 400%;
-  animation: cta-gradient-flow 7s ease infinite;
-  box-shadow:
-    0 10px 32px rgba(67,97,238,0.45),
-    0 2px 8px rgba(0,0,0,0.10),
-    inset 0 1px 0 rgba(255,255,255,0.25);
-}
-@keyframes cta-gradient-flow {
-  0%   { background-position: 0% 50%; }
-  50%  { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
-.cta-btn:hover {
-  transform: translateY(-2px);
-  box-shadow:
-    0 14px 40px rgba(67,97,238,0.55),
-    0 3px 10px rgba(0,0,0,0.10),
-    inset 0 1px 0 rgba(255,255,255,0.30);
-  filter: brightness(1.07) saturate(1.1);
-}
-.cta-btn:active {
-  transform: translateY(1px) scale(0.965);
-  box-shadow:
-    0 4px 14px rgba(67,97,238,0.40),
-    inset 0 2px 6px rgba(0,0,0,0.12);
-  filter: brightness(0.97);
-  transition-duration: 0.08s;
-}
 
-/* ═══ ACCESSIBILITY ═══ */
 @media (prefers-reduced-motion: reduce) {
   .cta-btn { animation: none; }
   .mood-btn.active, .city-pill.active { animation: none; transform: none; }
 }
 
 
-/* ── v4.2.1 — tactile press tuned to spec: scale(0.96) ── */
-.mood-btn:active  { transform: scale(0.96); }
-.city-pill:active { transform: scale(0.96); }
-
-
-/* ╔══════════════════════════════════════════════════════════════╗
-   ║  EXTREME VISUAL LAYER v4.3 — Heavy Glass + Deep 3D Shadows   ║
-   ║  (final cascade layer — overrides everything above)          ║
-   ╚══════════════════════════════════════════════════════════════╝ */
-
-/* ═══ HEAVY GLASSMORPHISM — بالمواصفات الدقيقة المطلوبة ═══ */
-.filter-card {
-  background: rgba(255, 255, 255, 0.60);
-  backdrop-filter: blur(16px) saturate(1.65);
-  -webkit-backdrop-filter: blur(16px) saturate(1.65);
-  border: 1px solid rgba(255, 255, 255, 0.30);
-  box-shadow:
-    0 24px 48px -12px rgba(31, 45, 120, 0.18),
-    0 8px 20px -6px rgba(31, 45, 120, 0.10),
-    0 2px 6px rgba(0, 0, 0, 0.05),
-    inset 0 1px 0 rgba(255, 255, 255, 0.95),
-    inset 0 -1px 0 rgba(255, 255, 255, 0.35);
-}
-.mood-btn {
-  background: rgba(255, 255, 255, 0.60);
-  backdrop-filter: blur(12px) saturate(1.5);
-  -webkit-backdrop-filter: blur(12px) saturate(1.5);
-  border: 1px solid rgba(255, 255, 255, 0.30);
-  box-shadow:
-    0 6px 16px -4px rgba(31, 45, 120, 0.10),
-    inset 0 1px 0 rgba(255, 255, 255, 0.9);
-}
-.city-pill {
-  background: rgba(255, 255, 255, 0.60);
-  backdrop-filter: blur(12px) saturate(1.5);
-  -webkit-backdrop-filter: blur(12px) saturate(1.5);
-  border: 1px solid rgba(255, 255, 255, 0.30);
-}
-.bottom-sheet {
-  background: rgba(255, 255, 255, 0.70);
-  backdrop-filter: blur(26px) saturate(1.8);
-  -webkit-backdrop-filter: blur(26px) saturate(1.8);
-  border-top: 1px solid rgba(255, 255, 255, 0.45);
-  box-shadow:
-    0 -28px 70px rgba(31, 45, 120, 0.22),
-    0 -8px 24px rgba(0, 0, 0, 0.08),
-    inset 0 1px 0 rgba(255, 255, 255, 0.95);
-}
-
-/* الخلفية لازم يكون فيها عمق حتى تبان الزجاجية — تدرج هادئ بدل الأبيض المسطح */
+/* Ambient page backdrop — subtle Ocean Breeze + coral warmth radials,
+   fully theme-aware (repaints automatically in dark mode via tokens) */
 body:not(.travel-theme) {
   background:
-    radial-gradient(ellipse 90% 55% at 85% -5%, rgba(67, 97, 238, 0.10), transparent 60%),
-    radial-gradient(ellipse 80% 50% at 0% 40%, rgba(255, 107, 107, 0.07), transparent 55%),
-    linear-gradient(180deg, #EEF1FB 0%, #F5F6FA 55%, #EDF0F9 100%);
+    radial-gradient(ellipse 90% 55% at 85% -5%, var(--ocean-sky-lt), transparent 60%),
+    radial-gradient(ellipse 80% 50% at 0% 40%, var(--coral-lt), transparent 55%),
+    var(--bg);
 }
-
-/* ═══ DEEP 3D — تفاعل الكروت مع الحوم ═══ */
-.filter-card { transition: transform 0.25s var(--ease-out), box-shadow 0.25s ease; }
-.filter-card:hover {
-  transform: translateY(-3px);
-  box-shadow:
-    0 32px 64px -14px rgba(31, 45, 120, 0.24),
-    0 12px 28px -8px rgba(31, 45, 120, 0.14),
-    0 3px 8px rgba(0, 0, 0, 0.05),
-    inset 0 1px 0 rgba(255, 255, 255, 0.95);
-}
-
-/* ═══ CTA — تدرج أعنف + هالة نابضة ═══ */
-.cta-btn {
-  box-shadow:
-    0 14px 40px rgba(67, 97, 238, 0.50),
-    0 4px 12px rgba(124, 92, 255, 0.35),
-    0 1px 4px rgba(0, 0, 0, 0.12),
-    inset 0 1px 0 rgba(255, 255, 255, 0.30);
-  animation: cta-gradient-flow 7s ease infinite, cta-glow-pulse 2.6s ease-in-out infinite;
-}
-@keyframes cta-glow-pulse {
-  0%, 100% { box-shadow: 0 14px 40px rgba(67,97,238,0.50), 0 4px 12px rgba(124,92,255,0.35), 0 1px 4px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.30); }
-  50%      { box-shadow: 0 18px 52px rgba(67,97,238,0.62), 0 6px 18px rgba(124,92,255,0.48), 0 1px 4px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.35); }
-}
-
-/* ═══ ENTRANCE — انزلاق صعودي أوضح ═══ */
-@keyframes ch-cascade {
-  from { opacity: 0; transform: translateY(28px) scale(0.97); }
-  to   { opacity: 1; transform: translateY(0)    scale(1); }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .cta-btn { animation: none; }
-}
-
 
 /* ╔══════════════════════════════════════════════════════════════╗
    ║  SMART SEARCH v4.4 — بحث فوري بهوية التصميم الزجاجية        ║
@@ -2511,7 +2469,7 @@ body:not(.travel-theme) {
 .search-icon {
   width: 20px; height: 20px;
   flex-shrink: 0;
-  color: var(--accent);
+  color: var(--ocean-sky);
   opacity: 0.85;
 }
 .search-input {
@@ -2546,11 +2504,10 @@ body:not(.travel-theme) {
 
 /* focus glow — نفس نيون التطبيق */
 .search-card:focus-within {
-  border-color: rgba(67,97,238,0.45);
+  border-color: var(--ocean-sky);
   box-shadow:
-    0 0 0 3px rgba(67,97,238,0.10),
-    0 14px 34px -8px rgba(67,97,238,0.20),
-    inset 0 1px 0 rgba(255,255,255,0.9);
+    0 0 0 3px var(--ocean-sky-lt),
+    0 14px 34px -8px var(--ocean-shadow);
 }
 
 /* ── قائمة النتائج المنسدلة ── */
@@ -2586,8 +2543,8 @@ body:not(.travel-theme) {
 .search-result-item:nth-child(4) { animation-delay: 0.14s; }
 .search-result-item:nth-child(5) { animation-delay: 0.18s; }
 .search-result-item:nth-child(6) { animation-delay: 0.22s; }
-.search-result-item:hover  { background: rgba(67,97,238,0.07); }
-.search-result-item:active { transform: scale(0.98); background: rgba(67,97,238,0.12); }
+.search-result-item:hover  { background: var(--ocean-sky-lt); }
+.search-result-item:active { transform: scale(0.98); background: var(--ocean-sky-lt); }
 
 .sri-emoji {
   font-size: 20px;
@@ -2595,7 +2552,7 @@ body:not(.travel-theme) {
   width: 34px; height: 34px;
   display: grid;
   place-items: center;
-  background: rgba(67,97,238,0.08);
+  background: var(--ocean-sky-lt);
   border-radius: 10px;
 }
 .sri-text { flex: 1; min-width: 0; }
@@ -2678,13 +2635,13 @@ body:not(.travel-theme) {
 .splash-cta {
   display: flex; align-items: center; justify-content: center; gap: 10px;
   width: 100%; padding: 18px 20px; border: none; border-radius: var(--r-lg);
-  background: linear-gradient(270deg, #4361EE, #5B6FF0, #7C5CFF, #4A8CF7, #4361EE);
-  background-size: 400% 400%; animation: cta-gradient-flow 7s ease infinite;
+  background: var(--ocean-gradient);
   color: #fff; font-family: 'Cairo', sans-serif; font-size: 17px; font-weight: 800;
-  cursor: pointer; box-shadow: 0 14px 40px rgba(67,97,238,0.45), 0 4px 12px rgba(0,0,0,0.18);
-  transition: transform var(--dur-fast) var(--ease-spring); -webkit-tap-highlight-color: transparent;
+  cursor: pointer; box-shadow: 0 10px 28px var(--ocean-shadow), 0 2px 8px rgba(0,0,0,0.14);
+  transition: transform var(--dur-fast) var(--ease-spring), filter var(--dur-fast); -webkit-tap-highlight-color: transparent;
 }
 .splash-cta svg { width: 19px; height: 19px; }
+.splash-cta:hover  { filter: brightness(1.06); }
 .splash-cta:active { transform: scale(0.96); }
 @media (prefers-reduced-motion: reduce) { .splash-scene { animation: none; } .splash { transition: none; } }
 
@@ -2704,52 +2661,7 @@ body:not(.travel-theme) {
 .ch-cloud.c3 { top: 12%; transform: scale(0.45); animation: ch-drift 21s linear infinite; animation-delay: -6s;  }
 @keyframes ch-drift { from { right: -130px; } to { right: calc(100% + 130px); } }
 
-@keyframes cta-gradient-flow {
-  0%   { background-position: 0% 50%; }
-  50%  { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
-.cta-btn {
-  background: linear-gradient(270deg, #4361EE, #5B6FF0, #7C5CFF, #4A8CF7, #4361EE);
-  background-size: 400% 400%;
-  animation: cta-gradient-flow 7s ease infinite;
-  box-shadow: 0 10px 32px rgba(67,97,238,0.45), 0 2px 8px rgba(0,0,0,0.10), inset 0 1px 0 rgba(255,255,255,0.25);
-}
-.cta-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 14px 40px rgba(67,97,238,0.55), 0 3px 10px rgba(0,0,0,0.10), inset 0 1px 0 rgba(255,255,255,0.30);
-  filter: brightness(1.07) saturate(1.1);
-}
-.cta-btn:active {
-  transform: translateY(1px) scale(0.965);
-  box-shadow: 0 4px 14px rgba(67,97,238,0.40), inset 0 2px 6px rgba(0,0,0,0.12);
-  filter: brightness(0.97); transition-duration: 0.08s;
-}
-@media (prefers-reduced-motion: reduce) { .cta-btn { animation: none; } }
-
 .city-bar-scroll { gap: 10px !important; padding-bottom: 2px; }
-.city-pill {
-  position: relative; flex-direction: row; align-items: center; gap: 7px;
-  padding: 11px 16px 11px 14px; border-radius: 16px;
-  border: 1px solid rgba(255,255,255,0.6);
-  background: linear-gradient(135deg, rgba(67,97,238,0.07), rgba(255,255,255,0.9));
-  overflow: hidden; isolation: isolate;
-}
-.city-pill::before {
-  content: ''; position: absolute; inset: 0; z-index: -1; opacity: 0;
-  background: linear-gradient(135deg, var(--accent), #7C5CFF);
-  transition: opacity var(--dur-med) ease;
-}
-.city-pill-emoji {
-  font-size: 22px; width: 30px; height: 30px; display: grid; place-items: center;
-  background: rgba(255,255,255,0.65); border-radius: 10px; flex-shrink: 0;
-}
-.city-pill.active {
-  border-color: transparent; color: #fff;
-  box-shadow: 0 10px 26px -6px rgba(67,97,238,0.45), 0 3px 10px rgba(67,97,238,0.25);
-}
-.city-pill.active::before { opacity: 1; }
-.city-pill.active .city-pill-emoji { background: rgba(255,255,255,0.22); }
 
 .cta-wrap {
   position: sticky; bottom: calc(var(--nav-h, 64px) + 14px + env(safe-area-inset-bottom, 0px));
@@ -2794,8 +2706,8 @@ body:not(.travel-theme) {
 }
 .pf-back-btn {
   width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0;
-  border: 1.5px solid rgba(0,0,0,0.07);
-  background: rgba(255,255,255,0.75);
+  border: 1.5px solid var(--border);
+  background: rgba(var(--surface-rgb), 0.75);
   backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
   box-shadow: 0 2px 8px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
   display: grid; place-items: center;
@@ -2844,12 +2756,52 @@ body:not(.travel-theme) {
 .pf-edit-badge:active { transform: scale(0.88); }
 .pf-avatar-name { font-size: 16px; font-weight: 800; color: var(--text-1); }
 
-.pf-form-card {
+/* ── Read-only profile summary card (shown after saving) ── */
+.pf-view-card {
   position: relative; z-index: 1;
-  background: rgba(255,255,255,0.62);
+  background: rgba(var(--surface-rgb), 0.70);
   backdrop-filter: blur(16px) saturate(1.65);
   -webkit-backdrop-filter: blur(16px) saturate(1.65);
-  border: 1px solid rgba(255,255,255,0.55);
+  border: 1px solid var(--border);
+  border-radius: 22px;
+  padding: 20px 18px 6px;
+  box-shadow:
+    0 24px 48px -12px rgba(31,45,120,0.16),
+    0 8px 20px -6px rgba(31,45,120,0.09),
+    inset 0 1px 0 rgba(255,255,255,0.9);
+}
+.pf-view-head {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  gap: 12px; margin-bottom: 16px;
+}
+.pf-view-title { font-size: 15.5px; font-weight: 800; color: var(--text); }
+.pf-view-sub   { font-size: 12px; color: var(--text-2); margin-top: 3px; line-height: 1.5; }
+.pf-view-edit-btn {
+  display: flex; align-items: center; gap: 6px; flex-shrink: 0;
+  padding: 9px 14px; border-radius: var(--r-full);
+  border: 1.5px solid var(--ocean-sky); background: var(--ocean-sky-lt);
+  color: var(--ocean-sky); font-family: 'Cairo', sans-serif;
+  font-size: 12.5px; font-weight: 800; cursor: pointer;
+  transition: all var(--dur-fast) var(--ease-spring);
+  -webkit-tap-highlight-color: transparent;
+}
+.pf-view-edit-btn svg { width: 14px; height: 14px; }
+.pf-view-edit-btn:hover  { background: var(--ocean-sky); color: #fff; transform: translateY(-1px); }
+.pf-view-edit-btn:active { transform: scale(0.95); }
+.pf-view-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 0; border-top: 1px solid var(--border);
+}
+.pf-view-row-last { padding-bottom: 14px; }
+.pf-view-row-label { font-size: 12.5px; color: var(--text-2); font-weight: 600; }
+.pf-view-row-value { font-size: 13.5px; color: var(--text); font-weight: 800; }
+
+.pf-form-card {
+  position: relative; z-index: 1;
+  background: rgba(var(--surface-rgb), 0.70);
+  backdrop-filter: blur(16px) saturate(1.65);
+  -webkit-backdrop-filter: blur(16px) saturate(1.65);
+  border: 1px solid var(--border);
   border-radius: 22px;
   padding: 20px 18px 18px;
   box-shadow:
@@ -2868,13 +2820,13 @@ body:not(.travel-theme) {
 .pf-input {
   width: 100%; box-sizing: border-box;
   padding: 15px 16px;
-  border: 1.5px solid #E9EBF0; border-radius: 16px;
+  border: 1.5px solid var(--line-soft); border-radius: 16px;
   background: #F7F8FC;
   font-family: 'Cairo', sans-serif; font-size: 14.5px; font-weight: 600;
   color: var(--text-1); direction: rtl; outline: none;
   transition: all var(--dur-fast) ease;
 }
-.pf-input:focus { border-color: rgba(67,97,238,0.45); background: #fff; box-shadow: 0 0 0 3px rgba(67,97,238,0.10); }
+.pf-input:focus { border-color: var(--border-focus); background: var(--surface); box-shadow: 0 0 0 3px rgba(67,97,238,0.10); }
 .pf-floating-label {
   position: absolute; right: 16px; top: 50%; transform: translateY(-50%);
   font-size: 14.5px; font-weight: 600; color: #9CA3AF;
@@ -2892,14 +2844,14 @@ body:not(.travel-theme) {
 .pf-select {
   width: 100%; box-sizing: border-box;
   padding: 14px 40px 14px 16px;
-  border: 1.5px solid #E9EBF0; border-radius: 16px;
+  border: 1.5px solid var(--line-soft); border-radius: 16px;
   background: #F7F8FC;
   font-family: 'Cairo', sans-serif; font-size: 14px; font-weight: 600;
   color: var(--text-1); direction: rtl; outline: none; cursor: pointer;
   appearance: none; -webkit-appearance: none;
   transition: all var(--dur-fast) ease;
 }
-.pf-select:focus { border-color: rgba(67,97,238,0.45); background: #fff; box-shadow: 0 0 0 3px rgba(67,97,238,0.10); }
+.pf-select:focus { border-color: var(--border-focus); background: var(--surface); box-shadow: 0 0 0 3px rgba(67,97,238,0.10); }
 .pf-select-chevron {
   width: 14px; height: 14px; color: #9CA3AF;
   position: absolute; top: 50%; left: 16px; transform: translateY(-50%);
@@ -2908,7 +2860,7 @@ body:not(.travel-theme) {
 
 .pf-segmented {
   position: relative; display: flex; direction: ltr;
-  background: #F7F8FC; border: 1.5px solid #E9EBF0; border-radius: 14px; padding: 4px;
+  background: #F7F8FC; border: 1.5px solid var(--line-soft); border-radius: 14px; padding: 4px;
 }
 .pf-segmented-thumb {
   position: absolute; top: 4px; bottom: 4px; left: 4px;
@@ -2935,10 +2887,10 @@ body:not(.travel-theme) {
 .pf-stats-card {
   position: relative; z-index: 1;
   margin-top: 14px;
-  background: rgba(255,255,255,0.55);
+  background: rgba(var(--surface-rgb), 0.65);
   backdrop-filter: blur(14px) saturate(1.5);
   -webkit-backdrop-filter: blur(14px) saturate(1.5);
-  border: 1px solid rgba(255,255,255,0.45);
+  border: 1px solid var(--border);
   border-radius: 20px;
   padding: 15px 15px 14px;
   box-shadow: 0 10px 28px -8px rgba(31,45,120,0.10), inset 0 1px 0 rgba(255,255,255,0.9);
@@ -2951,7 +2903,7 @@ body:not(.travel-theme) {
 .pf-stats-title svg { width: 15px; height: 15px; color: #F59E0B; }
 .pf-stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 9px; }
 .pf-stat-tile {
-  background: #fff; border: 1px solid rgba(0,0,0,0.06); border-radius: 15px;
+  background: var(--surface-2); border: 1px solid var(--border); border-radius: 15px;
   padding: 13px 8px 11px; text-align: center;
   display: flex; flex-direction: column; align-items: center; gap: 5px;
   transition: transform var(--dur-fast) var(--ease-spring);
@@ -2983,4 +2935,167 @@ body:not(.travel-theme) {
 
 @media (prefers-reduced-motion: reduce) {
   .pf-blob, .pf-avatar-ring, .pf-save-icon-loading svg { animation: none; }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   MAP VIEW v1.0 — Leaflet integration (Day 3)
+   Toggle between List View and Map View on the discover screen.
+   Design goals: Premium Light Theme match, theme-aware (dark mode
+   repaints via existing tokens), and a hard z-index ceiling so
+   Leaflet's internal panes (which go up to z-index 1000) can NEVER
+   overlap the Bottom Nav / Bottom Sheet / Toast.
+══════════════════════════════════════════════════════════════ */
+
+/* ── List ⇄ Map glassmorphism segmented toggle ── */
+.view-toggle-wrap {
+  position: relative;
+  display: flex;
+  margin-top: 12px;
+  padding: 4px;
+  border-radius: var(--r-full);
+  background: rgba(var(--surface-rgb), 0.60);
+  backdrop-filter: blur(14px) saturate(1.5);
+  -webkit-backdrop-filter: blur(14px) saturate(1.5);
+  border: 1px solid var(--border);
+  box-shadow: var(--sh-sm);
+}
+.view-toggle-thumb {
+  position: absolute;
+  z-index: 1;
+  top: 4px;
+  right: 4px;              /* RTL: list is first (right side) */
+  width: calc(50% - 4px);
+  height: calc(100% - 8px);
+  background: var(--ocean-gradient);
+  border-radius: var(--r-full);
+  box-shadow: 0 3px 12px var(--ocean-shadow);
+  transition: transform var(--dur-med) var(--ease-spring);
+}
+/* When map view active, slide thumb to the left half (RTL) */
+.view-toggle-wrap.mode-map .view-toggle-thumb { transform: translateX(-100%); }
+/* LTR (English UI): thumb starts left, slides right */
+html[dir="ltr"] .view-toggle-thumb { right: auto; left: 4px; }
+html[dir="ltr"] .view-toggle-wrap.mode-map .view-toggle-thumb { transform: translateX(100%); }
+
+.view-toggle-btn {
+  position: relative; z-index: 2;
+  flex: 1;
+  display: flex; align-items: center; justify-content: center; gap: 7px;
+  padding: 11px 8px;
+  border: none; background: transparent;
+  font-family: 'Cairo', sans-serif;
+  font-size: 13px; font-weight: 800;
+  color: var(--text-2);
+  cursor: pointer;
+  border-radius: var(--r-full);
+  transition: color var(--dur-med) ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.view-toggle-btn svg { width: 17px; height: 17px; flex-shrink: 0; }
+.view-toggle-btn.active { color: #fff; }
+.view-toggle-btn:active { transform: scale(0.97); }
+
+/* ── Map card + container ── */
+.map-card {
+  position: relative;
+  border-radius: var(--r-xl);
+  overflow: hidden;                 /* clips Leaflet's square tiles to our rounded corners */
+  border: 1px solid var(--border);
+  box-shadow: var(--sh-md);
+  background: var(--surface);
+  /* CRITICAL z-index containment: isolation creates a new stacking
+     context, so Leaflet's internal z-index:1000 panes are trapped
+     inside this card and mathematically cannot rise above the
+     Bottom Nav (z:100+), Bottom Sheet (z:999+), or Toast (z:9999). */
+  isolation: isolate;
+  z-index: 1;
+}
+#talaty-map {
+  width: 100%;
+  /* Main viewing area: viewport minus (topbar + travel toggle +
+     search + view toggle + city pills ≈ 400px) minus bottom nav.
+     dvh handles mobile browser chrome; vh fallback for old engines. */
+  height: calc(100vh  - var(--nav-h) - 430px);
+  height: calc(100dvh - var(--nav-h) - 430px);
+  min-height: 300px;
+  max-height: 560px;
+  background: var(--surface-2);     /* visible while tiles stream in */
+}
+.map-hint {
+  margin-top: 10px;
+  font-size: 11.5px;
+  color: var(--muted);
+  text-align: center;
+  line-height: 1.6;
+}
+.map-empty-hint {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  padding: 24px; text-align: center;
+  font-size: 13px; font-weight: 700; color: var(--text-2);
+  background: rgba(var(--surface-rgb), 0.82);
+  backdrop-filter: blur(4px);
+  z-index: 2;                       /* above tiles, still inside the isolated card */
+}
+.map-empty-hint[hidden] { display: none; }
+
+/* ── Hide the non-map filter sections while Map View is active.
+   City pills + search stay visible: they're the natural map filters.
+   The tall cinematic header + step dots also give way — the map is
+   the main viewing area in this mode (per Day-3 spec). ── */
+#screen-discover.map-view #budget-filter-section,
+#screen-discover.map-view #time-filter-section,
+#screen-discover.map-view #mood-filter-section,
+#screen-discover.map-view #distance-filter-section,
+#screen-discover.map-view .cta-wrap,
+#screen-discover.map-view .footer-hint,
+#screen-discover.map-view .cinematic-header,
+#screen-discover.map-view .steps {
+  display: none;
+}
+
+/* ── Leaflet popup re-skinned to the app's design language ── */
+.leaflet-popup-content-wrapper {
+  border-radius: 14px !important;
+  box-shadow: var(--sh-md) !important;
+  background: var(--surface) !important;
+  color: var(--text) !important;
+  font-family: 'Cairo', sans-serif !important;
+}
+.leaflet-popup-content { margin: 12px 14px !important; direction: rtl; text-align: right; }
+html[dir="ltr"] .leaflet-popup-content { direction: ltr; text-align: left; }
+.leaflet-popup-tip { background: var(--surface) !important; }
+.tl-popup-title { font-size: 13.5px; font-weight: 800; color: var(--text); margin-bottom: 8px; line-height: 1.4; }
+.tl-popup-btn {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 7px 14px; border: none; border-radius: var(--r-full);
+  background: var(--ocean-gradient); color: #fff;
+  font-family: 'Cairo', sans-serif; font-size: 11.5px; font-weight: 800;
+  cursor: pointer; box-shadow: 0 4px 12px var(--ocean-shadow);
+  -webkit-tap-highlight-color: transparent;
+}
+.tl-popup-btn:active { transform: scale(0.95); }
+.leaflet-container a.leaflet-popup-close-button { color: var(--muted) !important; }
+
+/* Attribution bar — keep it legible but subtle on both themes */
+.leaflet-control-attribution {
+  background: rgba(var(--surface-rgb), 0.75) !important;
+  color: var(--muted) !important;
+  font-size: 9px !important;
+}
+.leaflet-control-attribution a { color: var(--text-2) !important; }
+
+/* ── Dark mode: dim + invert the light OSM tiles so the map doesn't
+   blind users; controls/popups already repaint via tokens. ── */
+html[data-theme="dark"] .leaflet-tile {
+  filter: brightness(0.6) invert(1) contrast(3) hue-rotate(200deg) saturate(0.3) brightness(0.7);
+}
+html[data-theme="dark"] .leaflet-control-zoom a {
+  background: var(--surface) !important;
+  color: var(--text) !important;
+  border-color: var(--border) !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .view-toggle-thumb { transition: none; }
 }

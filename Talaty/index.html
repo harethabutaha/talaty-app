@@ -8,12 +8,35 @@
 
   <!-- PWA — Manifest & Theme -->
   <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#4361EE">
+  <meta name="theme-color" content="#4361EE" id="meta-theme-color">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="طلعتك">
   <link rel="apple-touch-icon" href="icon-192.png">
+
+  <!-- ══════════════════════════════════════════════════════
+       Theme + Language anti-flash — runs before first paint so
+       the app never flashes light-mode/Arabic before switching
+       to a saved dark-mode/English preference.
+  ══════════════════════════════════════════════════════ -->
+  <script>
+    (function () {
+      try {
+        var theme = localStorage.getItem('talaty_theme');
+        if (theme === 'dark') {
+          document.documentElement.setAttribute('data-theme', 'dark');
+          var metaColor = document.getElementById('meta-theme-color');
+          if (metaColor) metaColor.setAttribute('content', '#0F1220');
+        }
+        var lang = localStorage.getItem('talaty_lang');
+        if (lang === 'en') {
+          document.documentElement.setAttribute('lang', 'en');
+          document.documentElement.setAttribute('dir', 'ltr');
+        }
+      } catch (e) { /* localStorage unavailable — fall back to defaults */ }
+    })();
+  </script>
 
   <!-- Google tag (gtag.js) -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-RKV092DKTG"></script>
@@ -28,7 +51,19 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;900&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="style.css?v=10">
+  <!-- ══ Leaflet 1.9.4 — interactive map (Day 3: Map View) ══
+       Pinned version + SRI integrity hashes so a compromised CDN
+       can never inject code into the app. defer keeps it from
+       blocking first paint; script.js only touches Leaflet after
+       DOMContentLoaded so load order is safe. -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+        crossorigin="anonymous">
+  <script defer src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+          integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+          crossorigin="anonymous"></script>
+
+  <link rel="stylesheet" href="style.css?v=12">
 </head>
 <body>
 
@@ -49,11 +84,11 @@
         <span class="splash-logo-text">طلعتك</span>
       </div>
       <div class="splash-mid">
-        <h1>وين بدك تطلع اليوم؟</h1>
-        <p>اكتشف أفضل الأماكن والوجهات المخصصة لمزاجك وميزانيتك</p>
+        <h1 data-i18n="splash.title">وين بدك تطلع اليوم؟</h1>
+        <p data-i18n="splash.sub">اكتشف أفضل الأماكن والوجهات المخصصة لمزاجك وميزانيتك</p>
       </div>
       <button class="splash-cta" id="splash-cta-btn">
-        <span>ابدأ طلعتك</span>
+        <span data-i18n="splash.cta">ابدأ طلعتك</span>
         <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
           <path d="M4 10h12M10 4l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
@@ -90,7 +125,7 @@
 
       <!-- Logo Badge center -->
       <div class="header-center">
-        <div class="logo-badge">✨ طلعتك — الأردن</div>
+        <div class="logo-badge" data-i18n="discover.logo_badge">✨ طلعتك — الأردن</div>
       </div>
 
       <!-- Balancing spacer -->
@@ -109,8 +144,8 @@
       <span class="ch-plane" aria-hidden="true">✈️</span>
       <div class="ch-overlay" aria-hidden="true"></div>
       <div class="ch-content">
-        <h1>وين تحب<br>تطلع اليوم؟</h1>
-        <p>5 أسئلة بس — وأحنا نلاقيلك طلعتك المثالية 🎯</p>
+        <h1 data-i18n="discover.hero_title">وين تحب<br>تطلع اليوم؟</h1>
+        <p data-i18n="discover.hero_sub">5 أسئلة بس — وأحنا نلاقيلك طلعتك المثالية 🎯</p>
         <span class="ch-location-chip" id="ch-location-chip">📍 الأردن</span>
       </div>
     </header>
@@ -129,11 +164,11 @@
       <div class="travel-toggle-wrap" role="group" aria-label="نوع الطلعة">
         <button class="travel-toggle-btn active" id="toggle-local" data-mode="local" type="button">
           <span class="travel-toggle-emoji">🇯🇴</span>
-          طلعة محلية
+          <span data-i18n="discover.toggle_local">طلعة محلية</span>
         </button>
         <button class="travel-toggle-btn" id="toggle-travel" data-mode="travel" type="button">
           <span class="travel-toggle-emoji">✈️</span>
-          سفر للخارج
+          <span data-i18n="discover.toggle_travel">سفر للخارج</span>
         </button>
         <div class="travel-toggle-thumb" id="travel-toggle-thumb" aria-hidden="true"></div>
       </div>
@@ -149,6 +184,7 @@
           </svg>
           <input type="search" id="smart-search-input" class="search-input"
                  placeholder="ابحث عن مكان أو كود خصم..."
+                 data-i18n-placeholder="discover.search_placeholder"
                  autocomplete="off" enterkeyhint="search"
                  aria-label="ابحث عن مكان أو كود خصم">
           <button class="search-clear" id="search-clear-btn" aria-label="مسح البحث" hidden>
@@ -159,6 +195,37 @@
         </div>
         <div class="search-results" id="search-results" hidden></div>
       </div>
+
+      <!-- ══ View toggle: List ⇄ Map (local mode only) ══ -->
+      <div class="view-toggle-wrap" id="view-toggle-wrap" role="tablist" aria-label="طريقة العرض">
+        <div class="view-toggle-thumb" id="view-toggle-thumb" aria-hidden="true"></div>
+        <button class="view-toggle-btn active" id="view-list-btn" type="button" role="tab" aria-selected="true">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path d="M8 6h13M8 12h13M8 18h13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <circle cx="3.5" cy="6" r="1.5" fill="currentColor"/>
+            <circle cx="3.5" cy="12" r="1.5" fill="currentColor"/>
+            <circle cx="3.5" cy="18" r="1.5" fill="currentColor"/>
+          </svg>
+          <span data-i18n="discover.view_list">عرض القائمة</span>
+        </button>
+        <button class="view-toggle-btn" id="view-map-btn" type="button" role="tab" aria-selected="false">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path d="M9 20l-6 2V6l6-2m0 16l6-2m-6 2V4m6 14l6 2V6l-6-2m0 14V4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span data-i18n="discover.view_map">عرض الخريطة</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- ══ Map View container — replaces the filter list when active ══ -->
+    <div class="section map-section" id="map-section" hidden>
+      <div class="map-card">
+        <div id="talaty-map" aria-label="خريطة الأماكن"></div>
+        <div class="map-empty-hint" id="map-empty-hint" hidden data-i18n="discover.map_empty">
+          لا توجد أماكن بإحداثيات على الخريطة بعد — جرّب مدينة أو فلاتر مختلفة
+        </div>
+      </div>
+      <p class="map-hint" data-i18n="discover.map_hint">📍 اضغط على أي دبوس لمشاهدة تفاصيل المكان وكود الخصم</p>
     </div>
 
     <!-- Filter 0: City — horizontal scrollable pill bar -->
@@ -166,53 +233,52 @@
       <div class="filter-card city-bar-card" id="card-0">
         <div class="filter-label">
           <span class="icon">🗺️</span>
-          وين أنت هلأ؟
+          <span data-i18n="discover.city_question">وين أنت هلأ؟</span>
         </div>
         <div class="city-bar-scroll" role="group" aria-label="اختر مدينتك">
           <button class="city-pill active" data-group="city" data-val="عمّان">
             <span class="city-pill-emoji">🌆</span>
-            <span class="city-pill-name">عمّان</span>
+            <span class="city-pill-name" data-i18n="discover.city_amman">عمّان</span>
           </button>
           <button class="city-pill" data-group="city" data-val="إربد">
             <span class="city-pill-emoji">🎓</span>
-            <span class="city-pill-name">إربد</span>
+            <span class="city-pill-name" data-i18n="discover.city_irbid">إربد</span>
           </button>
           <button class="city-pill" data-group="city" data-val="العقبة">
             <span class="city-pill-emoji">🤿</span>
-            <span class="city-pill-name">العقبة</span>
+            <span class="city-pill-name" data-i18n="discover.city_aqaba">العقبة</span>
           </button>
           <button class="city-pill" data-group="city" data-val="البحر الميت">
             <span class="city-pill-emoji">💧</span>
-            <span class="city-pill-name">البحر الميت</span>
+            <span class="city-pill-name" data-i18n="discover.city_deadsea">البحر الميت</span>
           </button>
           <button class="city-pill" data-group="city" data-val="السلط">
             <span class="city-pill-emoji">🏛️</span>
-            <span class="city-pill-name">السلط</span>
+            <span class="city-pill-name" data-i18n="discover.city_salt">السلط</span>
           </button>
           <button class="city-pill" data-group="city" data-val="جرش">
             <span class="city-pill-emoji">🏺</span>
-            <span class="city-pill-name">جرش</span>
+            <span class="city-pill-name" data-i18n="discover.city_jerash">جرش</span>
           </button>
         </div>
       </div>
     </div>
 
     <!-- Filter 1: Budget — stepped range slider -->
-    <div class="section">
+    <div class="section" id="budget-filter-section">
       <div class="filter-card" id="card-1">
         <div class="filter-label">
           <span class="icon">💰</span>
-          <span id="budget-question-text">كم ميزانيتك؟</span>
-        </div>
-
-        <!-- Dynamic label — updates as slider moves -->
-        <div class="budget-label-wrap">
-          <span class="budget-label-text" id="budget-label-text">اختر ميزانيتك</span>
-          <span class="budget-label-badge" id="budget-label-badge"></span>
+          <span id="budget-question-text" data-i18n="discover.budget_question">كم ميزانيتك؟</span>
         </div>
 
         <!-- Stepped slider: 4 steps (0=مجاني 1=أقل من 5 2=5-15 3=+15) -->
         <div class="slider-wrap budget-slider-wrap">
+          <!-- Dynamic label — floats directly above the current thumb position -->
+          <div class="budget-label-wrap" id="budget-label-wrap">
+            <span class="budget-label-text" id="budget-label-text" data-i18n="discover.budget_choose">اختر ميزانيتك</span>
+            <span class="budget-label-badge" id="budget-label-badge"></span>
+          </div>
           <input
             type="range"
             id="budget-slider"
@@ -222,10 +288,10 @@
           />
           <!-- Tick marks aligned to steps -->
           <div class="budget-ticks" aria-hidden="true">
-            <span id="tick-0">مجاني</span>
-            <span id="tick-1">اقتصادي</span>
-            <span id="tick-2">معتدل</span>
-            <span id="tick-3">فاخر</span>
+            <span id="tick-0" data-i18n="discover.budget_tick_0">مجاني</span>
+            <span id="tick-1" data-i18n="discover.budget_tick_1">اقتصادي</span>
+            <span id="tick-2" data-i18n="discover.budget_tick_2">معتدل</span>
+            <span id="tick-3" data-i18n="discover.budget_tick_3">فاخر</span>
           </div>
         </div>
       </div>
@@ -241,7 +307,7 @@
               <path d="M10 6v4l2.5 2.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
           </span>
-          وقت الطلعة؟
+          <span data-i18n="discover.time_question">وقت الطلعة؟</span>
         </div>
         <div class="chip-group time-chip-group">
           <button class="chip time-chip" data-group="time" data-val="morning">
@@ -251,7 +317,7 @@
                 <path d="M11 3v2M11 17v2M3 11h2M17 11h2M5.22 5.22l1.42 1.42M15.36 15.36l1.42 1.42M5.22 16.78l1.42-1.42M15.36 6.64l1.42-1.42" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
               </svg>
             </span>
-            صباحي
+            <span data-i18n="discover.time_morning">صباحي</span>
           </button>
           <button class="chip time-chip" data-group="time" data-val="evening">
             <span class="time-chip-icon">
@@ -259,7 +325,7 @@
                 <path d="M18.5 14A7.5 7.5 0 018 3.5a.5.5 0 00-.65-.48A9 9 0 1019 15a.5.5 0 00-.48-.65A7.5 7.5 0 0118.5 14z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
               </svg>
             </span>
-            مسائي
+            <span data-i18n="discover.time_evening">مسائي</span>
           </button>
           <button class="chip time-chip" data-group="time" data-val="night">
             <span class="time-chip-icon">
@@ -267,18 +333,18 @@
                 <path d="M11 2L13.09 8.26L19.5 8.27L14.28 12.14L16.38 18.4L11 14.54L5.62 18.4L7.72 12.14L2.5 8.27L8.91 8.26L11 2z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
               </svg>
             </span>
-            سهرة
+            <span data-i18n="discover.time_night">سهرة</span>
           </button>
         </div>
       </div>
     </div>
 
     <!-- Filter 3: Mood -->
-    <div class="section">
+    <div class="section" id="mood-filter-section">
       <div class="filter-card" id="card-3">
         <div class="filter-label">
           <span class="icon">🎭</span>
-          كيف مزاجك اليوم؟
+          <span data-i18n="discover.mood_question">كيف مزاجك اليوم؟</span>
         </div>
         <div class="mood-grid">
           <!-- أدرينالين: lightning bolt -->
@@ -286,7 +352,7 @@
             <svg class="mood-icon" viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
               <path d="M14.5 3L5 15h8l-1.5 8 9.5-12h-8L14.5 3z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
-            أدرينالين
+            <span data-i18n="discover.mood_adrenaline">أدرينالين</span>
           </button>
           <!-- استرخاء: leaf / calm -->
           <button class="mood-btn" data-group="mood" data-val="استرخاء">
@@ -294,7 +360,7 @@
               <path d="M13 22c0 0-8-4.5-8-11a8 8 0 0116 0c0 6.5-8 11-8 11z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
               <path d="M13 22V11" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
             </svg>
-            استرخاء
+            <span data-i18n="discover.mood_relax">استرخاء</span>
           </button>
           <!-- اجتماعي: people -->
           <button class="mood-btn" data-group="mood" data-val="اجتماعي">
@@ -303,7 +369,7 @@
               <circle cx="17" cy="8" r="3" stroke="currentColor" stroke-width="1.8"/>
               <path d="M3 21c0-3.314 2.686-6 6-6h8c3.314 0 6 2.686 6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
             </svg>
-            اجتماعي
+            <span data-i18n="discover.mood_social">اجتماعي</span>
           </button>
           <!-- ثقافي: book -->
           <button class="mood-btn" data-group="mood" data-val="ثقافي">
@@ -312,14 +378,14 @@
               <path d="M18 5h2a2 2 0 012 2v12a2 2 0 01-2 2h-2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
               <path d="M8 10h6M8 14h4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
             </svg>
-            ثقافي
+            <span data-i18n="discover.mood_cultural">ثقافي</span>
           </button>
           <!-- رومانسي: heart -->
           <button class="mood-btn" data-group="mood" data-val="رومانسي">
             <svg class="mood-icon" viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
               <path d="M13 21.5S3.5 16 3.5 9.5a5 5 0 019.5-2.2A5 5 0 0122.5 9.5C22.5 16 13 21.5 13 21.5z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
-            رومانسي
+            <span data-i18n="discover.mood_romantic">رومانسي</span>
           </button>
           <!-- مغامرة: mountain -->
           <button class="mood-btn" data-group="mood" data-val="مغامرة">
@@ -327,7 +393,7 @@
               <path d="M2 21L10 7l4 7 3-4 7 11H2z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
               <circle cx="19" cy="6" r="2" stroke="currentColor" stroke-width="1.8"/>
             </svg>
-            مغامرة
+            <span data-i18n="discover.mood_adventure">مغامرة</span>
           </button>
         </div>
       </div>
@@ -338,20 +404,20 @@
       <div class="filter-card" id="card-4">
         <div class="filter-label">
           <span class="icon">📍</span>
-          المسافة المسموحة؟
+          <span data-i18n="discover.distance_question">المسافة المسموحة؟</span>
         </div>
         <div class="distance-display">
           <div class="km" id="km-val">10</div>
-          <div class="unit">كيلومتر منك</div>
+          <div class="unit" data-i18n="discover.distance_unit">كيلومتر منك</div>
         </div>
         <div class="slider-wrap">
           <input type="range" id="distance" min="1" max="50" value="10" step="1"
                  aria-label="المسافة بالكيلومتر" />
         </div>
         <div class="distance-ticks">
-          <span>1 كم</span>
-          <span>25 كم</span>
-          <span>50 كم</span>
+          <span data-i18n="discover.distance_tick_1">1 كم</span>
+          <span data-i18n="discover.distance_tick_25">25 كم</span>
+          <span data-i18n="discover.distance_tick_50">50 كم</span>
         </div>
       </div>
     </div>
@@ -360,7 +426,7 @@
     <div class="cta-wrap">
       <button class="cta-btn" id="discover-btn" aria-label="اكتشف طلعتك المثالية">
         <div class="cta-inner">
-          اكتشف طلعتك
+          <span data-i18n="discover.cta">اكتشف طلعتك</span>
           <svg class="cta-arrow" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
             <path d="M4 10h12M10 4l6 6-6 6" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
@@ -368,7 +434,7 @@
       </button>
     </div>
 
-    <p class="footer-hint">هذه نسخة أولية — الاقتراحات ستكون ذكية أكثر قريباً 🚀</p>
+    <p class="footer-hint" data-i18n="discover.footer_hint">هذه نسخة أولية — الاقتراحات ستكون ذكية أكثر قريباً 🚀</p>
 
     </div><!-- /screen-discover -->
 
@@ -377,8 +443,8 @@
     ════════════════════════════════════════════════════ -->
     <div class="screen" id="screen-saved">
       <div class="screen-header">
-        <h2 class="screen-title">مفضلتي</h2>
-        <p class="screen-sub">الأماكن التي أعجبتك تظهر هنا</p>
+        <h2 class="screen-title" data-i18n="saved.title">مفضلتي</h2>
+        <p class="screen-sub" data-i18n="saved.sub">الأماكن التي أعجبتك تظهر هنا</p>
       </div>
       <div class="screen-empty">
         <svg class="screen-empty-icon" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -386,8 +452,8 @@
           <path d="M32 44S16 36 16 24a10 10 0 0119-4.47A10 10 0 0148 24c0 12-16 20-16 20z"
                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
-        <p class="screen-empty-title">لا يوجد مفضلات بعد</p>
-        <p class="screen-empty-desc">اكتشف مكاناً واضغط على القلب لحفظه هنا</p>
+        <p class="screen-empty-title" data-i18n="saved.empty_title">لا يوجد مفضلات بعد</p>
+        <p class="screen-empty-desc" data-i18n="saved.empty_desc">اكتشف مكاناً واضغط على القلب لحفظه هنا</p>
       </div>
     </div><!-- /screen-saved -->
 
@@ -396,8 +462,8 @@
     ════════════════════════════════════════════════════ -->
     <div class="screen" id="screen-wallet">
       <div class="screen-header">
-        <h2 class="screen-title">المحفظة</h2>
-        <p class="screen-sub">كوبوناتك وعروضك الحصرية</p>
+        <h2 class="screen-title" data-i18n="wallet.title">المحفظة</h2>
+        <p class="screen-sub" data-i18n="wallet.sub">كوبوناتك وعروضك الحصرية</p>
       </div>
       <!-- Empty State — مخفي عند وجود بطاقات -->
       <div class="screen-empty" id="wallet-empty">
@@ -407,8 +473,8 @@
           <circle cx="18" cy="38" r="3" stroke="currentColor" stroke-width="2"/>
           <path d="M28 38h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
         </svg>
-        <p class="screen-empty-title">محفظتك فارغة</p>
-        <p class="screen-empty-desc">اكتشف مكاناً واضغط «احفظ في المحفظة» للحصول على كود خصم حصري</p>
+        <p class="screen-empty-title" data-i18n="wallet.empty_title">محفظتك فارغة</p>
+        <p class="screen-empty-desc" data-i18n="wallet.empty_desc">اكتشف مكاناً واضغط «احفظ في المحفظة» للحصول على كود خصم حصري</p>
       </div>
       <!-- Wallet Cards List — مخفي عند فراغ المحفظة -->
       <div class="wallet-list" id="wallet-list" style="display:none"></div>
@@ -419,8 +485,8 @@
     ════════════════════════════════════════════════════ -->
     <div class="screen" id="screen-settings">
       <div class="screen-header">
-        <h2 class="screen-title">الإعدادات</h2>
-        <p class="screen-sub">خصّص تجربتك وشاركنا أفكارك</p>
+        <h2 class="screen-title" data-i18n="settings.title">الإعدادات</h2>
+        <p class="screen-sub" data-i18n="settings.sub">خصّص تجربتك وشاركنا أفكارك</p>
       </div>
 
       <div class="settings-body">
@@ -436,11 +502,11 @@
               <span class="stg-account-initials" id="stg-account-initials" style="display:none;"></span>
             </div>
             <div style="flex:1;">
-              <div class="stg-card-title" id="stg-account-title">ملفك الشخصي</div>
-              <div class="stg-card-desc" id="stg-account-desc" style="margin-top:3px;">أنشئ ملفك لحفظ تفضيلاتك وتخصيص توصياتك</div>
+              <div class="stg-card-title" id="stg-account-title" data-i18n="settings.account_title_default">ملفك الشخصي</div>
+              <div class="stg-card-desc" id="stg-account-desc" style="margin-top:3px;" data-i18n="settings.account_desc_default">أنشئ ملفك لحفظ تفضيلاتك وتخصيص توصياتك</div>
             </div>
           </div>
-          <button class="stg-btn-ocean full" id="stg-account-btn" type="button">إنشاء ملفي الشخصي</button>
+          <button class="stg-btn-ocean full" id="stg-account-btn" type="button" data-i18n="settings.account_btn_default">إنشاء ملفي الشخصي</button>
         </div>
 
         <!-- ── صندوق الاقتراحات ── -->
@@ -452,21 +518,22 @@
               </svg>
             </div>
             <div>
-              <div class="stg-card-title stg-sm">صندوق الاقتراحات</div>
-              <div class="stg-card-desc stg-sm" style="margin-top:2px;">عندك مكان مميز أو فكرة تطوير؟ نبي نسمعك!</div>
+              <div class="stg-card-title stg-sm" data-i18n="settings.suggestions_title">صندوق الاقتراحات</div>
+              <div class="stg-card-desc stg-sm" style="margin-top:2px;" data-i18n="settings.suggestions_desc">عندك مكان مميز أو فكرة تطوير؟ نبي نسمعك!</div>
             </div>
           </div>
           <textarea
             class="suggestions-textarea"
             id="suggestions-textarea"
             placeholder="عندك مكان رهيب أو فكرة للتطبيق؟ شاركنا..."
+            data-i18n-placeholder="settings.suggestions_placeholder"
             maxlength="500"
             aria-label="صندوق الاقتراحات"
             style="margin-bottom:10px;"
           ></textarea>
           <button class="stg-btn-send" id="suggestions-submit-btn" type="button" disabled>
             <svg class="stg-spinner" id="suggestions-spinner" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" style="display:none;"><path d="M12 2 a10 10 0 0 1 10 10"></path></svg>
-            <span id="suggestions-submit-label">إرسال</span>
+            <span id="suggestions-submit-label" data-i18n="settings.suggestions_send">إرسال</span>
           </button>
         </div>
 
@@ -479,10 +546,10 @@
               </svg>
             </div>
             <div style="flex:1;">
-              <div class="stg-card-title">المظهر</div>
-              <div class="stg-card-desc" style="margin-top:3px;">الوضع الداكن — قريباً 🌙</div>
+              <div class="stg-card-title" data-i18n="settings.appearance_title">المظهر</div>
+              <div class="stg-card-desc" style="margin-top:3px;" data-i18n="settings.appearance_desc">بدّل بين الفاتح والداكن حسب مزاجك 🌙</div>
             </div>
-            <button class="stg-toggle-track" id="stg-dark-toggle" type="button" role="switch" aria-checked="false" aria-label="الوضع الداكن (قريباً)">
+            <button class="stg-toggle-track" id="stg-dark-toggle" type="button" role="switch" aria-checked="false" aria-label="تبديل الوضع الداكن" data-i18n-aria="settings.appearance_toggle_aria">
               <div class="stg-toggle-thumb"></div>
             </button>
           </div>
@@ -498,13 +565,13 @@
               </svg>
             </div>
             <div style="flex:1;">
-              <div class="stg-card-title">اللغة</div>
-              <div class="stg-card-desc" style="margin-top:3px;">الإنجليزية قريباً — العربية هي لغة التطبيق حالياً</div>
+              <div class="stg-card-title" data-i18n="settings.language_title">اللغة</div>
+              <div class="stg-card-desc" style="margin-top:3px;" data-i18n="settings.language_desc">بدّل لغة الواجهة بضغطة — أسماء الأماكن لسا عربي</div>
             </div>
             <div class="stg-seg-wrap" id="stg-lang-toggle">
               <div class="stg-seg-thumb"></div>
               <button class="stg-seg-btn ar" id="stg-lang-ar-btn" type="button" aria-label="العربية">AR</button>
-              <button class="stg-seg-btn en" id="stg-lang-en-btn" type="button" aria-label="English (قريباً)">EN</button>
+              <button class="stg-seg-btn en" id="stg-lang-en-btn" type="button" aria-label="English">EN</button>
             </div>
           </div>
         </div>
@@ -526,8 +593,8 @@
               </svg>
             </div>
             <div>
-              <div class="stg-card-title">تفريغ المحفظة</div>
-              <div class="stg-card-desc" style="margin-top:3px;">حذف جميع الكوبونات والأماكن المحفوظة بشكل نهائي</div>
+              <div class="stg-card-title" data-i18n="settings.wallet_clear_title">تفريغ المحفظة</div>
+              <div class="stg-card-desc" style="margin-top:3px;" data-i18n="settings.wallet_clear_desc">حذف جميع الكوبونات والأماكن المحفوظة بشكل نهائي</div>
             </div>
           </div>
           <button class="stg-btn-outline full danger" id="clear-wallet-btn" type="button">
@@ -538,7 +605,7 @@
                     stroke="currentColor" stroke-width="1.8"
                     stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
-            <span>تفريغ المحفظة الآن</span>
+            <span data-i18n="settings.wallet_clear_btn">تفريغ المحفظة الآن</span>
           </button>
         </div>
 
@@ -553,20 +620,20 @@
               </svg>
             </div>
             <div>
-              <div class="stg-card-title">الدعم الفني</div>
-              <div class="stg-card-desc" style="margin-top:3px;">عندك مشكلة أو استفسار؟ فريقنا جاهز يساعدك بأي وقت</div>
+              <div class="stg-card-title" data-i18n="settings.support_title">الدعم الفني</div>
+              <div class="stg-card-desc" style="margin-top:3px;" data-i18n="settings.support_desc">عندك مشكلة أو استفسار؟ فريقنا جاهز يساعدك بأي وقت</div>
             </div>
           </div>
           <button class="stg-btn-outline full" id="stg-support-btn" type="button">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
               <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
-            <span>تواصل مع الدعم</span>
+            <span data-i18n="settings.support_btn">تواصل مع الدعم</span>
           </button>
         </div>
 
         <!-- ── تذييل ── -->
-        <div class="stg-footer">إصدار التطبيق: MVP v2.0</div>
+        <div class="stg-footer"><span data-i18n="settings.footer_version">إصدار التطبيق: MVP v2.0</span></div>
 
       </div><!-- /settings-body -->
     </div><!-- /screen-settings -->
@@ -592,7 +659,7 @@
               <path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
           </button>
-          <div class="pf-topbar-title">ملفي الشخصي</div>
+          <div class="pf-topbar-title" data-i18n="profile.title">ملفي الشخصي</div>
           <div class="pf-topbar-spacer"></div>
         </div>
 
@@ -611,43 +678,79 @@
               </svg>
             </button>
           </div>
-          <div class="pf-avatar-name" id="profile-avatar-name">مستخدم طلعتك</div>
+          <div class="pf-avatar-name" id="profile-avatar-name" data-i18n="profile.default_name">مستخدم طلعتك</div>
+        </div>
+
+        <!-- Read-only summary card — shown once the user has saved a
+             profile; keeps the screen calm/scannable instead of an
+             open form every visit. Hidden by default (JS shows it
+             only when profile.name exists and editMode is off). -->
+        <div class="pf-view-card" id="pf-view-card" style="display:none;">
+          <div class="pf-view-head">
+            <div>
+              <div class="pf-view-title" data-i18n="profile.view_title">معلوماتك الشخصية</div>
+              <div class="pf-view-sub" data-i18n="profile.view_sub">تساعدنا نخصصلك أفضل توصيات ممكنة</div>
+            </div>
+            <button class="pf-view-edit-btn" id="pf-view-edit-btn" type="button">
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <path d="M12 20h9" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+                <path d="M16.5 3.5a2.12 2.12 0 013 3L7 19l-4 1 1-4L16.5 3.5z" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              <span data-i18n="profile.edit_btn">تعديل</span>
+            </button>
+          </div>
+          <div class="pf-view-row">
+            <span class="pf-view-row-label" data-i18n="profile.name_label">الاسم الكامل</span>
+            <span class="pf-view-row-value" id="pf-view-name">—</span>
+          </div>
+          <div class="pf-view-row">
+            <span class="pf-view-row-label" data-i18n="profile.country_label">الدولة / الجنسية</span>
+            <span class="pf-view-row-value" id="pf-view-country">—</span>
+          </div>
+          <div class="pf-view-row">
+            <span class="pf-view-row-label" data-i18n="profile.age_label">الفئة العمرية</span>
+            <span class="pf-view-row-value" id="pf-view-age">—</span>
+          </div>
+          <div class="pf-view-row pf-view-row-last">
+            <span class="pf-view-row-label" data-i18n="profile.gender_label">الجنس</span>
+            <span class="pf-view-row-value" id="pf-view-gender">—</span>
+          </div>
         </div>
 
         <!-- Form card -->
-        <div class="pf-form-card">
+        <div class="pf-form-card" id="pf-form-card">
 
           <!-- Name — floating label -->
           <div class="pf-field pf-floating">
             <input class="pf-input" id="profile-name-input" type="text"
                    placeholder=" " maxlength="60" autocomplete="name" aria-label="الاسم الكامل">
-            <label class="pf-floating-label" for="profile-name-input">الاسم الكامل</label>
+            <label class="pf-floating-label" for="profile-name-input" data-i18n="profile.name_label">الاسم الكامل</label>
           </div>
 
           <!-- Country dropdown -->
           <div class="pf-field">
-            <div class="pf-field-title">الدولة / الجنسية</div>
+            <div class="pf-field-title" data-i18n="profile.country_label">الدولة / الجنسية</div>
             <div class="pf-select-wrap">
               <select class="pf-select" id="profile-country-select" aria-label="الدولة / الجنسية">
-                <option value="" disabled selected>اختر دولتك...</option>
-                <option value="الأردن">🇯🇴 الأردن</option>
-                <option value="فلسطين">🇵🇸 فلسطين</option>
-                <option value="مصر">🇪🇬 مصر</option>
-                <option value="السعودية">🇸🇦 السعودية</option>
-                <option value="الإمارات">🇦🇪 الإمارات</option>
-                <option value="الكويت">🇰🇼 الكويت</option>
-                <option value="قطر">🇶🇦 قطر</option>
-                <option value="البحرين">🇧🇭 البحرين</option>
-                <option value="عُمان">🇴🇲 عُمان</option>
-                <option value="سوريا">🇸🇾 سوريا</option>
-                <option value="العراق">🇮🇶 العراق</option>
-                <option value="لبنان">🇱🇧 لبنان</option>
-                <option value="اليمن">🇾🇪 اليمن</option>
-                <option value="ليبيا">🇱🇾 ليبيا</option>
-                <option value="تونس">🇹🇳 تونس</option>
-                <option value="الجزائر">🇩🇿 الجزائر</option>
-                <option value="المغرب">🇲🇦 المغرب</option>
-                <option value="أخرى">🌍 أخرى</option>
+                <option value="" disabled selected data-i18n="profile.country_placeholder">اختر دولتك...</option>
+                <option value="الأردن" data-i18n="profile.country_jo">🇯🇴 الأردن</option>
+                <option value="فلسطين" data-i18n="profile.country_ps">🇵🇸 فلسطين</option>
+                <option value="مصر" data-i18n="profile.country_eg">🇪🇬 مصر</option>
+                <option value="السعودية" data-i18n="profile.country_sa">🇸🇦 السعودية</option>
+                <option value="الإمارات" data-i18n="profile.country_ae">🇦🇪 الإمارات</option>
+                <option value="الكويت" data-i18n="profile.country_kw">🇰🇼 الكويت</option>
+                <option value="قطر" data-i18n="profile.country_qa">🇶🇦 قطر</option>
+                <option value="البحرين" data-i18n="profile.country_bh">🇧🇭 البحرين</option>
+                <option value="عُمان" data-i18n="profile.country_om">🇴🇲 عُمان</option>
+                <option value="سوريا" data-i18n="profile.country_sy">🇸🇾 سوريا</option>
+                <option value="العراق" data-i18n="profile.country_iq">🇮🇶 العراق</option>
+                <option value="لبنان" data-i18n="profile.country_lb">🇱🇧 لبنان</option>
+                <option value="اليمن" data-i18n="profile.country_ye">🇾🇪 اليمن</option>
+                <option value="ليبيا" data-i18n="profile.country_ly">🇱🇾 ليبيا</option>
+                <option value="تونس" data-i18n="profile.country_tn">🇹🇳 تونس</option>
+                <option value="الجزائر" data-i18n="profile.country_dz">🇩🇿 الجزائر</option>
+                <option value="المغرب" data-i18n="profile.country_ma">🇲🇦 المغرب</option>
+                <option value="أخرى" data-i18n="profile.country_other">🌍 أخرى</option>
               </select>
               <svg class="pf-select-chevron" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                 <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/>
@@ -657,7 +760,7 @@
 
           <!-- Age group — segmented pills -->
           <div class="pf-field">
-            <div class="pf-field-title">الفئة العمرية</div>
+            <div class="pf-field-title" data-i18n="profile.age_label">الفئة العمرية</div>
             <div class="pf-segmented" id="profile-age-group" role="group" aria-label="الفئة العمرية">
               <span class="pf-segmented-thumb" id="pf-age-thumb"></span>
               <button type="button" class="pf-segmented-btn" data-age-val="4-17">4-17</button>
@@ -670,11 +773,11 @@
 
           <!-- Gender — segmented pills -->
           <div class="pf-field">
-            <div class="pf-field-title">الجنس</div>
+            <div class="pf-field-title" data-i18n="profile.gender_label">الجنس</div>
             <div class="pf-segmented pf-segmented-2" id="profile-gender" role="group" aria-label="الجنس">
               <span class="pf-segmented-thumb" id="pf-gender-thumb"></span>
-              <button type="button" class="pf-segmented-btn" data-gender-val="male">ذكر</button>
-              <button type="button" class="pf-segmented-btn" data-gender-val="female">أنثى</button>
+              <button type="button" class="pf-segmented-btn" data-gender-val="male" data-i18n="profile.gender_male">ذكر</button>
+              <button type="button" class="pf-segmented-btn" data-gender-val="female" data-i18n="profile.gender_female">أنثى</button>
             </div>
           </div>
 
@@ -687,7 +790,7 @@
               <circle cx="12" cy="8" r="6" stroke="currentColor" stroke-width="2"/>
               <path d="M8.21 13.89L7 23l5-3 5 3-1.21-9.12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
-            إنجازاتك
+            <span data-i18n="profile.stats_title">إنجازاتك</span>
           </div>
           <div class="pf-stats-grid">
             <div class="pf-stat-tile">
@@ -697,7 +800,7 @@
                 </svg>
               </div>
               <div class="pf-stat-num" id="stat-wallet-count">0</div>
-              <div class="pf-stat-label">كوبونات محفوظة</div>
+              <div class="pf-stat-label" data-i18n="profile.stat_wallet_label">كوبونات محفوظة</div>
             </div>
             <div class="pf-stat-tile">
               <div class="pf-stat-icon pf-stat-icon-accent">
@@ -707,7 +810,7 @@
                 </svg>
               </div>
               <div class="pf-stat-num" id="stat-discover-count">0</div>
-              <div class="pf-stat-label">طلعات اكتُشفت</div>
+              <div class="pf-stat-label" data-i18n="profile.stat_discover_label">طلعات اكتُشفت</div>
             </div>
             <div class="pf-stat-tile">
               <div class="pf-stat-icon pf-stat-icon-teal">
@@ -716,7 +819,7 @@
                 </svg>
               </div>
               <div class="pf-stat-num" id="gami-visited-count">0</div>
-              <div class="pf-stat-label">أماكن زرتها</div>
+              <div class="pf-stat-label" data-i18n="profile.stat_visited_label">أماكن زرتها</div>
             </div>
             <div class="pf-stat-tile pf-stat-tile-gold">
               <div class="pf-stat-icon pf-stat-icon-gold">
@@ -725,8 +828,8 @@
                   <path d="M7 6H4a1 1 0 00-1 1c0 2.5 2 4 4 4M17 6h3a1 1 0 011 1c0 2.5-2 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
               </div>
-              <div class="pf-stat-rank" id="gami-rank-text">مكتشف مبتدئ</div>
-              <div class="pf-stat-label">رتبتك الحالية</div>
+              <div class="pf-stat-rank" id="gami-rank-text" data-i18n="profile.rank_beginner">مكتشف مبتدئ</div>
+              <div class="pf-stat-label" data-i18n="profile.stat_rank_label">رتبتك الحالية</div>
             </div>
           </div>
         </div>
@@ -744,7 +847,7 @@
               <path d="M21 12a9 9 0 00-9-9" stroke="#fff" stroke-width="2.3" stroke-linecap="round"/>
             </svg>
           </span>
-          <span class="pf-save-label">حفظ التغييرات</span>
+          <span class="pf-save-label" data-i18n="profile.save_btn">حفظ التغييرات</span>
         </button>
 
       </div><!-- /pf-wrap -->
@@ -773,7 +876,7 @@
       <!-- AI Thinking Skeleton — shown during loading -->
       <div class="sheet-skeleton" id="sheet-skeleton">
         <div class="ai-thinking-text" id="ai-thinking-box">
-          <span class="ai-cycle-text" id="ai-cycle-text">جاري تحليل مزاجك...</span>
+          <span class="ai-cycle-text" id="ai-cycle-text" data-i18n="result.ai_thinking">جاري تحليل مزاجك...</span>
           <span class="ai-dots" aria-hidden="true">
             <span></span><span></span><span></span>
           </span>
@@ -792,17 +895,17 @@
       <!-- No-match fallback card -->
       <div class="no-match-card" id="no-match-card">
         <div class="no-match-icon">🔍</div>
-        <p class="no-match-title">بحثنا في كل مكان!</p>
-        <p class="no-match-desc">لا يوجد تطابق 100% لمعاييرك الدقيقة جداً. جرّب تغيير الميزانية أو الوقت وسيبهرك الذكاء الاصطناعي.</p>
+        <p class="no-match-title" data-i18n="result.no_match_title">بحثنا في كل مكان!</p>
+        <p class="no-match-desc" data-i18n="result.no_match_desc">لا يوجد تطابق 100% لمعاييرك الدقيقة جداً. جرّب تغيير الميزانية أو الوقت وسيبهرك الذكاء الاصطناعي.</p>
         <p class="no-match-tip">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v4h1"/></svg>
-          الفلتر الصارم يضمن لك دقة أعلى في التوصيات
+          <span data-i18n="result.no_match_tip">الفلتر الصارم يضمن لك دقة أعلى في التوصيات</span>
         </p>
       </div>
 
       <div class="result-card show" id="result-card" role="region" aria-label="نتيجة اقتراحك">
         <div class="result-eyebrow">
-          <span class="result-badge" id="res-badge-text">🎯 اقتراحك المثالي</span>
+          <span class="result-badge" id="res-badge-text" data-i18n="result.badge_default">🎯 اقتراحك المثالي</span>
           <span class="result-city-tag" id="res-city-tag"></span>
         </div>
         <div class="result-title" id="res-title">—</div>
@@ -811,19 +914,28 @@
 
         <!-- Discount -->
         <div class="discount-box">
-          <div class="discount-label">🎁 كود الخصم الحصري</div>
+          <div class="discount-label" data-i18n="result.discount_label">🎁 كود الخصم الحصري</div>
           <div class="discount-code-row">
             <span class="discount-code" id="res-discount-code">TALATY10</span>
-            <button class="copy-btn" id="copy-btn">نسخ</button>
+            <button class="copy-btn" id="copy-btn" data-i18n="result.copy_btn">نسخ</button>
           </div>
           <div class="discount-note" id="res-discount-note">وفّر 10% على أول زيارة لك!</div>
         </div>
 
-        <!-- Maps -->
+        <!-- Maps (local results only) -->
         <a class="maps-btn" id="res-maps-btn" href="#" target="_blank" rel="noopener noreferrer">
-          <span>اذهب إلى هناك</span>
+          <span data-i18n="result.maps_btn">اذهب إلى هناك</span>
           <span class="map-icon" aria-hidden="true">🗺️</span>
         </a>
+
+        <!-- Wego referral (travel results only) -->
+        <a class="wego-btn" id="res-wego-btn" href="#" target="_blank" rel="noopener noreferrer sponsored" style="display:none;">
+          <span data-i18n="result.wego_btn">قارن الأسعار على Wego</span>
+          <span class="wego-icon" aria-hidden="true">✈️</span>
+        </a>
+        <div class="wego-disclosure" id="res-wego-disclosure" style="display:none;" data-i18n="result.wego_disclosure">
+          رابط إحالة — طلعتك ممكن ياخذ عمولة صغيرة بدون أي تكلفة إضافية عليك
+        </div>
 
         <!-- Action Buttons Row: Wallet + WhatsApp -->
         <div class="result-actions-row">
@@ -836,7 +948,7 @@
               <circle cx="7.5" cy="15" r="1.2" fill="currentColor"/>
               <path d="M12 15h5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
             </svg>
-            احفظ في المحفظة
+            <span data-i18n="result.save_wallet_btn">احفظ في المحفظة</span>
           </button>
 
           <!-- Share on WhatsApp -->
@@ -846,7 +958,7 @@
                  xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
               <path d="M20.52 3.48A11.93 11.93 0 0 0 12 0C5.37 0 0 5.37 0 12c0 2.11.55 4.17 1.6 5.97L0 24l6.22-1.57A11.95 11.95 0 0 0 12 24c6.63 0 12-5.37 12-12 0-3.2-1.25-6.22-3.48-8.52zM12 22c-1.85 0-3.66-.5-5.24-1.43l-.37-.22-3.87.98.99-3.77-.24-.38A9.94 9.94 0 0 1 2 12C2 6.48 6.48 2 12 2c2.66 0 5.16 1.04 7.04 2.92A9.93 9.93 0 0 1 22 12c0 5.52-4.48 10-10 10zm5.47-7.3c-.3-.15-1.77-.87-2.04-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.17-.17.2-.35.22-.65.07a8.16 8.16 0 0 1-2.4-1.48 9.01 9.01 0 0 1-1.66-2.07c-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.07-.15-.67-1.61-.92-2.2-.24-.58-.49-.5-.67-.51l-.57-.01c-.2 0-.52.07-.79.37-.27.3-1.04 1.01-1.04 2.47 0 1.46 1.06 2.87 1.21 3.07.15.2 2.09 3.19 5.06 4.47.71.3 1.26.49 1.69.62.71.23 1.36.2 1.87.12.57-.09 1.77-.72 2.02-1.42.25-.7.25-1.3.17-1.42-.07-.12-.27-.2-.57-.35z"/>
             </svg>
-            شارك الطلعة مع أصحابك
+            <span data-i18n="result.whatsapp_btn">شارك الطلعة مع أصحابك</span>
           </button>
 
         </div><!-- /result-actions-row -->
@@ -872,7 +984,7 @@
         <path d="M11 8v3m0 0v3m0-3h3m-3 0H8" stroke="currentColor"
               stroke-width="1.8" stroke-linecap="round"/>
       </svg>
-      <span class="nav-label">اكتشف</span>
+      <span class="nav-label" data-i18n="nav.discover">اكتشف</span>
       <div class="nav-dot"></div>
     </button>
 
@@ -886,7 +998,7 @@
               stroke="currentColor" stroke-width="1.8"
               stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
-      <span class="nav-label">مفضلتي</span>
+      <span class="nav-label" data-i18n="nav.saved">مفضلتي</span>
       <div class="nav-dot"></div>
     </button>
 
@@ -903,7 +1015,7 @@
         <path d="M12 15h5" stroke="currentColor" stroke-width="1.8"
               stroke-linecap="round"/>
       </svg>
-      <span class="nav-label">المحفظة</span>
+      <span class="nav-label" data-i18n="nav.wallet">المحفظة</span>
       <div class="nav-dot"></div>
     </button>
 
@@ -918,7 +1030,7 @@
               stroke="currentColor" stroke-width="1.8"
               stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
-      <span class="nav-label">الإعدادات</span>
+      <span class="nav-label" data-i18n="nav.settings">الإعدادات</span>
       <div class="nav-dot"></div>
     </button>
 
@@ -927,7 +1039,7 @@
   <!-- PapaParse — robust CSV-to-JSON parsing for Google Sheets CMS -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 
-  <script src="script.js?v=10"></script>
+  <script src="script.js?v=12"></script>
 
   <!-- PWA — Service Worker Registration -->
   <script>
