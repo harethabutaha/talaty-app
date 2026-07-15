@@ -51,19 +51,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;900&display=swap" rel="stylesheet">
 
-  <!-- ══ Leaflet 1.9.4 — interactive map (Day 3: Map View) ══
-       Pinned version + SRI integrity hashes so a compromised CDN
-       can never inject code into the app. defer keeps it from
-       blocking first paint; script.js only touches Leaflet after
-       DOMContentLoaded so load order is safe. -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
-        crossorigin="anonymous">
-  <script defer src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-          integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
-          crossorigin="anonymous"></script>
-
-  <link rel="stylesheet" href="style.css?v=12">
+  <link rel="stylesheet" href="style.css?v=14">
 </head>
 <body>
 
@@ -123,10 +111,8 @@
         </svg>
       </button>
 
-      <!-- Logo Badge center -->
-      <div class="header-center">
-        <div class="logo-badge" data-i18n="discover.logo_badge">✨ طلعتك — الأردن</div>
-      </div>
+      <!-- Logo Badge center (removed per product decision — cleaner topbar) -->
+      <div class="header-center"></div>
 
       <!-- Balancing spacer -->
       <div class="header-spacer" aria-hidden="true"></div>
@@ -145,7 +131,7 @@
       <div class="ch-overlay" aria-hidden="true"></div>
       <div class="ch-content">
         <h1 data-i18n="discover.hero_title">وين تحب<br>تطلع اليوم؟</h1>
-        <p data-i18n="discover.hero_sub">5 أسئلة بس — وأحنا نلاقيلك طلعتك المثالية 🎯</p>
+        <p data-i18n="discover.hero_sub">3 أسئلة بس — وأحنا نلاقيلك طلعتك المثالية 🎯</p>
         <span class="ch-location-chip" id="ch-location-chip">📍 الأردن</span>
       </div>
     </header>
@@ -155,8 +141,6 @@
       <div class="step-dot active" id="dot-0"></div>
       <div class="step-dot" id="dot-1"></div>
       <div class="step-dot" id="dot-2"></div>
-      <div class="step-dot" id="dot-3"></div>
-      <div class="step-dot" id="dot-4"></div>
     </div>
 
     <!-- Travel Mode Toggle — segmented control -->
@@ -195,37 +179,6 @@
         </div>
         <div class="search-results" id="search-results" hidden></div>
       </div>
-
-      <!-- ══ View toggle: List ⇄ Map (local mode only) ══ -->
-      <div class="view-toggle-wrap" id="view-toggle-wrap" role="tablist" aria-label="طريقة العرض">
-        <div class="view-toggle-thumb" id="view-toggle-thumb" aria-hidden="true"></div>
-        <button class="view-toggle-btn active" id="view-list-btn" type="button" role="tab" aria-selected="true">
-          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-            <path d="M8 6h13M8 12h13M8 18h13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-            <circle cx="3.5" cy="6" r="1.5" fill="currentColor"/>
-            <circle cx="3.5" cy="12" r="1.5" fill="currentColor"/>
-            <circle cx="3.5" cy="18" r="1.5" fill="currentColor"/>
-          </svg>
-          <span data-i18n="discover.view_list">عرض القائمة</span>
-        </button>
-        <button class="view-toggle-btn" id="view-map-btn" type="button" role="tab" aria-selected="false">
-          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-            <path d="M9 20l-6 2V6l6-2m0 16l6-2m-6 2V4m6 14l6 2V6l-6-2m0 14V4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-          <span data-i18n="discover.view_map">عرض الخريطة</span>
-        </button>
-      </div>
-    </div>
-
-    <!-- ══ Map View container — replaces the filter list when active ══ -->
-    <div class="section map-section" id="map-section" hidden>
-      <div class="map-card">
-        <div id="talaty-map" aria-label="خريطة الأماكن"></div>
-        <div class="map-empty-hint" id="map-empty-hint" hidden data-i18n="discover.map_empty">
-          لا توجد أماكن بإحداثيات على الخريطة بعد — جرّب مدينة أو فلاتر مختلفة
-        </div>
-      </div>
-      <p class="map-hint" data-i18n="discover.map_hint">📍 اضغط على أي دبوس لمشاهدة تفاصيل المكان وكود الخصم</p>
     </div>
 
     <!-- Filter 0: City — horizontal scrollable pill bar -->
@@ -298,47 +251,6 @@
     </div>
 
     <!-- Filter 2: Time -->
-    <div class="section" id="time-filter-section">
-      <div class="filter-card" id="card-2">
-        <div class="filter-label">
-          <span class="icon">
-            <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:18px;height:18px;display:inline-block;vertical-align:middle" aria-hidden="true">
-              <circle cx="10" cy="10" r="7.5" stroke="currentColor" stroke-width="1.6"/>
-              <path d="M10 6v4l2.5 2.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </span>
-          <span data-i18n="discover.time_question">وقت الطلعة؟</span>
-        </div>
-        <div class="chip-group time-chip-group">
-          <button class="chip time-chip" data-group="time" data-val="morning">
-            <span class="time-chip-icon">
-              <svg viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                <circle cx="11" cy="11" r="4" stroke="currentColor" stroke-width="1.6"/>
-                <path d="M11 3v2M11 17v2M3 11h2M17 11h2M5.22 5.22l1.42 1.42M15.36 15.36l1.42 1.42M5.22 16.78l1.42-1.42M15.36 6.64l1.42-1.42" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
-              </svg>
-            </span>
-            <span data-i18n="discover.time_morning">صباحي</span>
-          </button>
-          <button class="chip time-chip" data-group="time" data-val="evening">
-            <span class="time-chip-icon">
-              <svg viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                <path d="M18.5 14A7.5 7.5 0 018 3.5a.5.5 0 00-.65-.48A9 9 0 1019 15a.5.5 0 00-.48-.65A7.5 7.5 0 0118.5 14z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-            </span>
-            <span data-i18n="discover.time_evening">مسائي</span>
-          </button>
-          <button class="chip time-chip" data-group="time" data-val="night">
-            <span class="time-chip-icon">
-              <svg viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                <path d="M11 2L13.09 8.26L19.5 8.27L14.28 12.14L16.38 18.4L11 14.54L5.62 18.4L7.72 12.14L2.5 8.27L8.91 8.26L11 2z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-            </span>
-            <span data-i18n="discover.time_night">سهرة</span>
-          </button>
-        </div>
-      </div>
-    </div>
-
     <!-- Filter 3: Mood -->
     <div class="section" id="mood-filter-section">
       <div class="filter-card" id="card-3">
@@ -400,28 +312,6 @@
     </div>
 
     <!-- Filter 4: Distance -->
-    <div class="section" id="distance-filter-section">
-      <div class="filter-card" id="card-4">
-        <div class="filter-label">
-          <span class="icon">📍</span>
-          <span data-i18n="discover.distance_question">المسافة المسموحة؟</span>
-        </div>
-        <div class="distance-display">
-          <div class="km" id="km-val">10</div>
-          <div class="unit" data-i18n="discover.distance_unit">كيلومتر منك</div>
-        </div>
-        <div class="slider-wrap">
-          <input type="range" id="distance" min="1" max="50" value="10" step="1"
-                 aria-label="المسافة بالكيلومتر" />
-        </div>
-        <div class="distance-ticks">
-          <span data-i18n="discover.distance_tick_1">1 كم</span>
-          <span data-i18n="discover.distance_tick_25">25 كم</span>
-          <span data-i18n="discover.distance_tick_50">50 كم</span>
-        </div>
-      </div>
-    </div>
-
     <!-- CTA -->
     <div class="cta-wrap">
       <button class="cta-btn" id="discover-btn" aria-label="اكتشف طلعتك المثالية">
@@ -904,6 +794,20 @@
       </div>
 
       <div class="result-card show" id="result-card" role="region" aria-label="نتيجة اقتراحك">
+
+        <!-- ═══ Hero image — يحيي البطاقة. صورة إن وُجدت، وإلا تدرّج + إيموجي التصنيف ═══ -->
+        <div class="result-hero" id="res-hero">
+          <img class="result-hero-img" id="res-hero-img" alt="" />
+          <span class="result-hero-emoji" id="res-hero-emoji" aria-hidden="true"></span>
+          <span class="result-hero-scrim" aria-hidden="true"></span>
+          <!-- قلب الحفظ — نفس معرّف زر الحفظ القديم حتى يبقى منطقه شغّالاً -->
+          <button class="result-fav-btn" id="save-wallet-btn" aria-label="احفظ في المحفظة">
+            <svg class="fav-heart" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+        </div>
+
         <div class="result-eyebrow">
           <span class="result-badge" id="res-badge-text" data-i18n="result.badge_default">🎯 اقتراحك المثالي</span>
           <span class="result-city-tag" id="res-city-tag"></span>
@@ -911,6 +815,16 @@
         <div class="result-title" id="res-title">—</div>
         <div class="result-desc"  id="res-desc">—</div>
         <div class="result-pills" id="res-pills"></div>
+
+        <!-- خيار ثاني — يظهر فقط لما في أكثر من نتيجة مطابقة -->
+        <button class="result-next-btn" id="result-next-btn" type="button" style="display:none;">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path d="M17.65 6.35A8 8 0 1 0 19.5 13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M20 4v5h-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span data-i18n="result.next_btn">خيار ثاني</span>
+          <span class="result-next-counter" id="result-next-counter"></span>
+        </button>
 
         <!-- Discount -->
         <div class="discount-box">
@@ -937,19 +851,8 @@
           رابط إحالة — طلعتك ممكن ياخذ عمولة صغيرة بدون أي تكلفة إضافية عليك
         </div>
 
-        <!-- Action Buttons Row: Wallet + WhatsApp -->
+        <!-- Action Buttons Row: WhatsApp (secondary — save moved to heart on hero) -->
         <div class="result-actions-row">
-
-          <!-- Save to Wallet -->
-          <button class="save-wallet-btn" id="save-wallet-btn" aria-label="احفظ في المحفظة">
-            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-              <rect x="1" y="4" width="22" height="16" rx="3" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
-              <path d="M1 10h22" stroke="currentColor" stroke-width="1.8"/>
-              <circle cx="7.5" cy="15" r="1.2" fill="currentColor"/>
-              <path d="M12 15h5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-            </svg>
-            <span data-i18n="result.save_wallet_btn">احفظ في المحفظة</span>
-          </button>
 
           <!-- Share on WhatsApp -->
           <button class="whatsapp-btn" id="whatsapp-share-btn" aria-label="شارك على واتساب">
@@ -1039,7 +942,7 @@
   <!-- PapaParse — robust CSV-to-JSON parsing for Google Sheets CMS -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 
-  <script src="script.js?v=12"></script>
+  <script src="script.js?v=14"></script>
 
   <!-- PWA — Service Worker Registration -->
   <script>

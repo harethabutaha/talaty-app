@@ -330,7 +330,10 @@ function normalizeRow(row) {
     desc:         normaliseStr(row.desc         || ''),
     mapQuery:     normaliseStr(row.mapQuery     || ''),
     discount:     normaliseStr(row.discount     || ''),
-    discountNote: normaliseStr(row.discountNote || '')
+    discountNote: normaliseStr(row.discountNote || ''),
+    /* v14 — hero image + fallback emoji (both optional; empty is fine) */
+    image:        normaliseStr(row.image         || ''),
+    emoji:        normaliseStr(row.fallback_emoji || row.emoji || '')
   };
 }
 
@@ -619,7 +622,10 @@ function normalizeTravelRow(row) {
 
     discount: discount,
     discountNote: (row.discountNote || '').trim() ||
-                  (discount ? 'استخدم الكود عند الحجز!' : '')
+                  (discount ? 'استخدم الكود عند الحجز!' : ''),
+    /* v14 — hero image + fallback emoji (both optional; empty is fine) */
+    image: (row.image || '').trim(),
+    emoji: (row.fallback_emoji || row.emoji || '').trim()
   };
 }
 
@@ -910,10 +916,9 @@ function findSuggestion(cityKey, moodKey, budgetKey, timeKey) {
 function updateDots() {
   var hasCity   = isTravelMode ? true : !!document.querySelector('[data-group="city"].active');
   var hasBudget = true; // slider always has a value
-  var hasTime   = isTravelMode ? true : !!document.querySelector('[data-group="time"].active');
   var hasMood   = !!document.querySelector('[data-group="mood"].active');
 
-  var states = [hasCity, hasBudget, hasTime, hasMood, false];
+  var states = [hasCity, hasBudget, hasMood];
   states.forEach(function(done, i) {
     var dot = document.getElementById('dot-' + i);
     if (!dot) return;
@@ -1077,8 +1082,6 @@ var toggleLocalBtn  = document.getElementById('toggle-local');
 var toggleTravelBtn = document.getElementById('toggle-travel');
 var toggleWrap      = document.querySelector('.travel-toggle-wrap');
 var citySection      = document.getElementById('city-filter-section');
-var timeSection       = document.getElementById('time-filter-section');
-var distanceSection   = document.getElementById('distance-filter-section');
 var budgetQuestionEl = document.getElementById('budget-question-text');
 
 function applyTravelModeUI() {
@@ -1090,10 +1093,6 @@ function applyTravelModeUI() {
 
     /* Hide city bar — irrelevant for international travel */
     if (citySection) citySection.classList.add('is-hidden');
-
-    /* Hide Time & Distance filters — irrelevant for international travel */
-    if (timeSection)     timeSection.classList.add('hidden-filter');
-    if (distanceSection) distanceSection.classList.add('hidden-filter');
 
     /* Swap budget vocabulary (language-aware) */
     var travelTicks = currentLang === 'en'
@@ -1115,10 +1114,6 @@ function applyTravelModeUI() {
 
     /* Restore city bar */
     if (citySection) citySection.classList.remove('is-hidden');
-
-    /* Restore Time & Distance filters */
-    if (timeSection)     timeSection.classList.remove('hidden-filter');
-    if (distanceSection) distanceSection.classList.remove('hidden-filter');
 
     /* Restore local budget vocabulary (language-aware) */
     BUDGET_STEPS  = currentLang === 'en'
@@ -1152,25 +1147,6 @@ if (toggleLocalBtn && toggleTravelBtn) {
 }
 
 /* ══════════════════════════════════════════
-   DISTANCE SLIDER
-   Input is forced LTR (direction:ltr on .slider-wrap).
-   Value increases left→right, so fill goes left→right too.
-══════════════════════════════════════════ */
-const slider = document.getElementById('distance');
-const kmVal  = document.getElementById('km-val');
-
-function updateSlider() {
-  const pct = ((slider.value - slider.min) / (slider.max - slider.min)) * 100;
-  const colors = getSliderTrackColors();
-  slider.style.background =
-    `linear-gradient(to right, ${colors.fill} ${pct}%, ${colors.track} ${pct}%)`;
-  kmVal.textContent = slider.value;
-}
-
-slider.addEventListener('input', updateSlider);
-updateSlider();
-
-/* ══════════════════════════════════════════
    SHAKE HELPER
 ══════════════════════════════════════════ */
 function shakeCard(cardId) {
@@ -1185,29 +1161,31 @@ function shakeCard(cardId) {
 /* ══════════════════════════════════════════
    DISCOVER BUTTON — Local Engine (Path A) + Travel Engine (Path B)
 ══════════════════════════════════════════ */
+/* Shared with the "خيار ثاني" (Next option) button — holds the full
+   matched set from the last discover click, plus which one is showing. */
+var discoverBrowseState = null;
+
 document.getElementById('discover-btn').addEventListener('click', function() {
   /* Note: button is disabled via setDiscoverButtonLoading() while the CSV
      fetch is in progress, so placesLoaded is always true by the time any
      click can fire. Guard kept as a belt-and-suspenders safety check only. */
   if (!isTravelMode && !placesLoaded) return; /* silent — button was already disabled */
 
-  var time = document.querySelector('[data-group="time"].active');
   var moodBtns = document.querySelectorAll('[data-group="mood"].active');
-  var distance = slider.value;
 
-  /* ── Validation differs by mode: travel mode hides City, Time & Distance ── */
+  /* ── Validation: travel mode only needs a mood; local mode also needs a city ── */
   var hasError = false;
   var city = null;
   if (!isTravelMode) {
     city = document.querySelector('[data-group="city"].active');
     if (!city) { shakeCard('card-0'); hasError = true; }
-    if (!time) { shakeCard('card-2'); hasError = true; }
   }
   if (moodBtns.length === 0) { shakeCard('card-3'); hasError = true; }
   if (hasError) return;
 
   var budgetKey = getSelectedBudget();  /* always valid — slider has default */
-  var timeKey   = time ? time.dataset.val : null;
+  var timeKey   = null;                 /* Time filter removed — filterStrict already
+                                            treats a null timeKey as "skip this check" */
   var moodKeys  = Array.prototype.map.call(moodBtns, function(m) { return m.dataset.val; });
   var moodKey   = moodKeys; /* array — filter functions accept single val or array */
   var cityKey   = city ? city.dataset.val : null;
@@ -1226,6 +1204,16 @@ document.getElementById('discover-btn').addEventListener('click', function() {
     var matches = shuffleArray(filterStrict(cityKey, moodKey, budgetKey, timeKey, audience));
     sug = matches.length > 0 ? matches[0] : null;
   }
+
+  /* ── "خيار ثاني" — remember the FULL matched set (not just the
+     first pick) so the Next-option button can browse through it
+     without re-running the filter or re-showing the loading spinner. ── */
+  discoverBrowseState = {
+    isTravelMode: isTravelMode,
+    matches: isTravelMode ? (travelMatches || []) : (matches || []),
+    index: 0,
+    cityKey: cityKey, moodKeys: moodKeys, budgetKey: budgetKey, audience: audience
+  };
 
   if (navigator.vibrate) navigator.vibrate(20);
 
@@ -1302,142 +1290,12 @@ document.getElementById('discover-btn').addEventListener('click', function() {
       return;
     }
 
-    var mapsBtn   = document.getElementById('res-maps-btn');
-    var badgeEl   = document.getElementById('res-badge-text');
-    var pillsEl   = document.getElementById('res-pills');
-    var saveBtn   = document.getElementById('save-wallet-btn');
-    var copyBtn   = document.getElementById('copy-btn');
+    /* Populate the card from the browse state (shared with "خيار ثاني") */
+    renderResultIntoCard();
 
-    if (isTravelMode) {
-      /* ── TRAVEL RESULT ── */
-      document.getElementById('res-city-tag').textContent = travelResult.flag + ' ' + travelResult.country;
-      document.getElementById('res-title').textContent     = travelResult.title;
-      document.getElementById('res-desc').textContent      = travelResult.desc;
-      document.getElementById('res-discount-code').textContent = travelResult.discount;
-      document.getElementById('res-discount-note').textContent = travelResult.discountNote;
-
-      /* Hide the whole discount box when this destination has no code */
-      var discountBoxT = document.querySelector('.discount-box');
-      if (discountBoxT) discountBoxT.style.display = travelResult.discount ? '' : 'none';
-
-      if (badgeEl) { badgeEl.textContent = t('result.badge_travel'); badgeEl.classList.add('is-travel'); }
-
-      /* Hide Google Maps button — not relevant for international travel */
-      if (mapsBtn) mapsBtn.style.display = 'none';
-
-      /* Show the Wego referral button — first monetized touchpoint.
-         Stays hidden automatically until WEGO_ENABLED is true. */
-      var wegoBtn = document.getElementById('res-wego-btn');
-      var wegoDisclosure = document.getElementById('res-wego-disclosure');
-      if (wegoBtn && WEGO_ENABLED) {
-        wegoBtn.href = buildWegoReferralUrl(travelResult.country);
-        wegoBtn.style.display = '';
-        if (wegoDisclosure) wegoDisclosure.style.display = '';
-        wegoBtn.onclick = function() {
-          if (typeof gtag === 'function') {
-            gtag('event', 'wego_referral_click', {
-              destination: travelResult.country, mood: moodKeys.join('|'), budget: budgetKey
-            });
-          }
-        };
-      } else if (wegoBtn) {
-        wegoBtn.style.display = 'none';
-        if (wegoDisclosure) wegoDisclosure.style.display = 'none';
-      }
-
-      copyBtn.textContent = t('result.copy_btn');
-      copyBtn.classList.remove('copied');
-
-      saveBtn.dataset.title    = travelResult.flag + ' ' + travelResult.title;
-      saveBtn.dataset.discount = travelResult.discount;
-      saveBtn.dataset.note     = travelResult.discountNote;
-      saveBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><rect x="1" y="4" width="22" height="16" rx="3" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M1 10h22" stroke="currentColor" stroke-width="1.8"/><circle cx="7.5" cy="15" r="1.2" fill="currentColor"/><path d="M12 15h5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg> ' + t('result.save_wallet_btn');
-      saveBtn.classList.remove('saved');
-
-      var waBtn = document.getElementById('whatsapp-share-btn');
-      if (waBtn) waBtn.onclick = function() { shareToWhatsApp(travelResult.flag + ' ' + travelResult.title); };
-
-      pillsEl.innerHTML = '';
-      var visaFreeLabel = currentLang === 'en' ? '🛂 Visa-free' : '🛂 خالي من الفيزا';
-      var travelPills = [].concat(travelResult.pills, ['💰 ' + budgetKey, visaFreeLabel]);
-      travelPills.forEach(function(text) {
-        var span = document.createElement('span');
-        span.className = 'result-pill';
-        span.textContent = text;
-        pillsEl.appendChild(span);
-      });
-
-      if (typeof gtag === 'function') {
-        gtag('event', 'travel_discover_clicked', {
-          mood: moodKeys.join("|"), budget: budgetKey, country: travelResult.country
-        });
-      }
-
-    } else {
-      /* ── LOCAL RESULT (unchanged logic) ── */
-      document.getElementById('res-city-tag').textContent     = '📍 ' + cityKey;
-      document.getElementById('res-title').textContent         = sug.title;
-      document.getElementById('res-desc').textContent          = sug.desc;
-      document.getElementById('res-discount-code').textContent = sug.discount;
-      document.getElementById('res-discount-note').textContent = sug.discountNote;
-
-      /* Hide the whole discount box when this place has no code */
-      var discountBoxL = document.querySelector('.discount-box');
-      if (discountBoxL) discountBoxL.style.display = sug.discount ? '' : 'none';
-
-      if (badgeEl) { badgeEl.textContent = t('result.badge_default'); badgeEl.classList.remove('is-travel'); }
-
-      /* Restore Google Maps button for local results */
-      if (mapsBtn) {
-        mapsBtn.style.display = '';
-        mapsBtn.href = 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(sug.mapQuery);
-      }
-
-      /* Wego referral is travel-only — never relevant for local outings */
-      var wegoBtnLocal = document.getElementById('res-wego-btn');
-      var wegoDisclosureLocal = document.getElementById('res-wego-disclosure');
-      if (wegoBtnLocal) wegoBtnLocal.style.display = 'none';
-      if (wegoDisclosureLocal) wegoDisclosureLocal.style.display = 'none';
-
-      copyBtn.textContent = t('result.copy_btn');
-      copyBtn.classList.remove('copied');
-
-      saveBtn.dataset.title    = sug.title;
-      saveBtn.dataset.discount = sug.discount;
-      saveBtn.dataset.note     = sug.discountNote;
-      saveBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><rect x="1" y="4" width="22" height="16" rx="3" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M1 10h22" stroke="currentColor" stroke-width="1.8"/><circle cx="7.5" cy="15" r="1.2" fill="currentColor"/><path d="M12 15h5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg> ' + t('result.save_wallet_btn');
-      saveBtn.classList.remove('saved');
-
-      var waBtn2 = document.getElementById('whatsapp-share-btn');
-      if (waBtn2) waBtn2.onclick = function() { shareToWhatsApp(sug.title); };
-
-      pillsEl.innerHTML = '';
-      var timeLabel = currentLang === 'en'
-        ? { morning: '🌅 Morning', evening: '🌇 Evening', night: '🌙 Night' }
-        : { morning: '🌅 صباحي', evening: '🌇 مسائي', night: '🌙 سهرة' };
-      var audienceLabel = currentLang === 'en'
-        ? (audience === 'tourist' ? '✈️ Tourist' : '🏠 Local')
-        : (audience === 'tourist' ? '✈️ سياحي' : '🏠 محلي');
-      var distancePillLabel = currentLang === 'en' ? ('📍 Under ' + distance + ' km') : ('📍 أقل من ' + distance + ' كم');
-      var allPills = [].concat(sug.pills, ['💰 ' + budgetKey, timeLabel[timeKey] || timeKey, audienceLabel, distancePillLabel]);
-      allPills.forEach(function(text) {
-        var span = document.createElement('span');
-        span.className = 'result-pill';
-        span.textContent = text;
-        pillsEl.appendChild(span);
-      });
-
-      if (typeof gtag === 'function') {
-        gtag('event', 'discover_clicked', {
-          city: cityKey, mood: moodKeys.join("|"), budget: budgetKey,
-          time: timeKey, audience: audience, place: sug.title
-        });
-      }
-    }
-
-    // Step dot
-    document.getElementById('dot-4').classList.remove('active', 'done');
-    document.getElementById('dot-4').classList.add('done');
+    // Step dot — mark the last of our 3 questions as fully done
+    var dot2 = document.getElementById('dot-2');
+    if (dot2) { dot2.classList.remove('active', 'done'); dot2.classList.add('done'); }
 
     // Show result card with animation
     resultCard.style.display = '';
@@ -1449,6 +1307,257 @@ document.getElementById('discover-btn').addEventListener('click', function() {
 
   }, 1500);
 });
+
+/* ══════════════════════════════════════════════════════════════
+   v14 — HERO IMAGE + SMART FALLBACK
+   The result card comes alive with a photo. When no image URL is
+   set, we show a branded gradient + a category emoji instead of a
+   broken-image icon. Emoji priority:
+     1. explicit fallback_emoji from the sheet
+     2. the leading emoji of the first pill (zero data entry!)
+     3. a sensible default (📍 local / ✈️ travel)
+   One helper, called by EVERY render path (discover, travel, search)
+   so the image logic can never drift out of sync.
+══════════════════════════════════════════════════════════════ */
+var FAV_HEART_OUTLINE = '<svg class="fav-heart" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+var FAV_HEART_FILLED  = '<svg class="fav-heart" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>';
+
+/* Extract the first pictographic emoji from a string (e.g. "🔐 غرفة هروب" → "🔐") */
+function firstEmojiFrom(text) {
+  if (!text) return '';
+  try {
+    var m = String(text).match(/\p{Extended_Pictographic}/u);
+    return m ? m[0] : '';
+  } catch (e) {
+    /* very old engine without Unicode property escapes — skip gracefully */
+    return '';
+  }
+}
+
+/* Reset the fav (heart) button to its default outline/unsaved state */
+function resetFavButton() {
+  var favBtn = document.getElementById('save-wallet-btn');
+  if (!favBtn) return;
+  favBtn.innerHTML = FAV_HEART_OUTLINE;
+  favBtn.classList.remove('saved');
+}
+
+/* Paint the hero: real image if present, otherwise gradient + emoji */
+function applyResultImage(item, isTravel) {
+  var hero  = document.getElementById('res-hero');
+  var img   = document.getElementById('res-hero-img');
+  var emoji = document.getElementById('res-hero-emoji');
+  if (!hero || !img || !emoji) return;
+
+  var url = (item && item.image) ? String(item.image).trim() : '';
+  var fb  = (item && item.emoji ? item.emoji : '') ||
+            firstEmojiFrom(item && item.pills && item.pills[0]) ||
+            (isTravel ? '✈️' : '📍');
+
+  emoji.textContent = fb;
+  hero.classList.remove('has-img');
+  img.onload = null;
+  img.onerror = null;
+  img.removeAttribute('src');
+
+  if (url) {
+    img.onload  = function () { hero.classList.add('has-img'); };
+    img.onerror = function () { hero.classList.remove('has-img'); img.removeAttribute('src'); };
+    img.alt = item.title || '';
+    img.src = url;
+  } else {
+    img.alt = '';
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   renderResultIntoCard() — populates the result card DOM from
+   discoverBrowseState.matches[index]. Shared by the initial
+   discover click AND the "خيار ثاني" (Next) button, so there is
+   exactly one place that knows how to draw a result — clicking
+   Next can never drift out of sync with the first render.
+══════════════════════════════════════════════════════════════ */
+function renderResultIntoCard() {
+  var st = discoverBrowseState;
+  if (!st) return;
+  var item = st.matches[st.index];
+  if (!item) return;
+
+  /* v14 — paint hero image (or gradient+emoji) + reset heart */
+  applyResultImage(item, st.isTravelMode);
+  resetFavButton();
+
+  var mapsBtn   = document.getElementById('res-maps-btn');
+  var badgeEl   = document.getElementById('res-badge-text');
+  var pillsEl   = document.getElementById('res-pills');
+  var saveBtn   = document.getElementById('save-wallet-btn');
+  var copyBtn   = document.getElementById('copy-btn');
+
+  if (st.isTravelMode) {
+    var travelResult = item;
+    /* ── TRAVEL RESULT ── */
+    document.getElementById('res-city-tag').textContent = travelResult.flag + ' ' + travelResult.country;
+    document.getElementById('res-title').textContent     = travelResult.title;
+    document.getElementById('res-desc').textContent      = travelResult.desc;
+    document.getElementById('res-discount-code').textContent = travelResult.discount;
+    document.getElementById('res-discount-note').textContent = travelResult.discountNote;
+
+    /* Hide the whole discount box when this destination has no code */
+    var discountBoxT = document.querySelector('.discount-box');
+    if (discountBoxT) discountBoxT.style.display = travelResult.discount ? '' : 'none';
+
+    if (badgeEl) { badgeEl.textContent = t('result.badge_travel'); badgeEl.classList.add('is-travel'); }
+
+    /* Hide Google Maps button — not relevant for international travel */
+    if (mapsBtn) mapsBtn.style.display = 'none';
+
+    /* Show the Wego referral button — first monetized touchpoint.
+       Stays hidden automatically until WEGO_ENABLED is true. */
+    var wegoBtn = document.getElementById('res-wego-btn');
+    var wegoDisclosure = document.getElementById('res-wego-disclosure');
+    if (wegoBtn && WEGO_ENABLED) {
+      wegoBtn.href = buildWegoReferralUrl(travelResult.country);
+      wegoBtn.style.display = '';
+      if (wegoDisclosure) wegoDisclosure.style.display = '';
+      wegoBtn.onclick = function() {
+        if (typeof gtag === 'function') {
+          gtag('event', 'wego_referral_click', {
+            destination: travelResult.country, mood: st.moodKeys.join('|'), budget: st.budgetKey
+          });
+        }
+      };
+    } else if (wegoBtn) {
+      wegoBtn.style.display = 'none';
+      if (wegoDisclosure) wegoDisclosure.style.display = 'none';
+    }
+
+    copyBtn.textContent = t('result.copy_btn');
+    copyBtn.classList.remove('copied');
+
+    saveBtn.dataset.title    = travelResult.flag + ' ' + travelResult.title;
+    saveBtn.dataset.discount = travelResult.discount;
+    saveBtn.dataset.note     = travelResult.discountNote;
+
+    var waBtn = document.getElementById('whatsapp-share-btn');
+    if (waBtn) waBtn.onclick = function() { shareToWhatsApp(travelResult.flag + ' ' + travelResult.title); };
+
+    pillsEl.innerHTML = '';
+    var visaFreeLabel = currentLang === 'en' ? '🛂 Visa-free' : '🛂 خالي من الفيزا';
+    var travelPills = [].concat(travelResult.pills, ['💰 ' + st.budgetKey, visaFreeLabel]);
+    travelPills.forEach(function(text) {
+      var span = document.createElement('span');
+      span.className = 'result-pill';
+      span.textContent = text;
+      pillsEl.appendChild(span);
+    });
+
+    if (typeof gtag === 'function') {
+      gtag('event', 'travel_discover_clicked', {
+        mood: st.moodKeys.join("|"), budget: st.budgetKey, country: travelResult.country
+      });
+    }
+
+  } else {
+    var sug = item;
+    /* ── LOCAL RESULT (unchanged logic) ── */
+    document.getElementById('res-city-tag').textContent     = '📍 ' + st.cityKey;
+    document.getElementById('res-title').textContent         = sug.title;
+    document.getElementById('res-desc').textContent          = sug.desc;
+    document.getElementById('res-discount-code').textContent = sug.discount;
+    document.getElementById('res-discount-note').textContent = sug.discountNote;
+
+    /* Hide the whole discount box when this place has no code */
+    var discountBoxL = document.querySelector('.discount-box');
+    if (discountBoxL) discountBoxL.style.display = sug.discount ? '' : 'none';
+
+    if (badgeEl) { badgeEl.textContent = t('result.badge_default'); badgeEl.classList.remove('is-travel'); }
+
+    /* Restore Google Maps button for local results */
+    if (mapsBtn) {
+      mapsBtn.style.display = '';
+      mapsBtn.href = 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(sug.mapQuery);
+    }
+
+    /* Wego referral is travel-only — never relevant for local outings */
+    var wegoBtnLocal = document.getElementById('res-wego-btn');
+    var wegoDisclosureLocal = document.getElementById('res-wego-disclosure');
+    if (wegoBtnLocal) wegoBtnLocal.style.display = 'none';
+    if (wegoDisclosureLocal) wegoDisclosureLocal.style.display = 'none';
+
+    copyBtn.textContent = t('result.copy_btn');
+    copyBtn.classList.remove('copied');
+
+    saveBtn.dataset.title    = sug.title;
+    saveBtn.dataset.discount = sug.discount;
+    saveBtn.dataset.note     = sug.discountNote;
+
+    var waBtn2 = document.getElementById('whatsapp-share-btn');
+    if (waBtn2) waBtn2.onclick = function() { shareToWhatsApp(sug.title); };
+
+    pillsEl.innerHTML = '';
+    var audienceLabel = currentLang === 'en'
+      ? (st.audience === 'tourist' ? '✈️ Tourist' : '🏠 Local')
+      : (st.audience === 'tourist' ? '✈️ سياحي' : '🏠 محلي');
+    var allPills = [].concat(sug.pills, ['💰 ' + st.budgetKey, audienceLabel]);
+    allPills.forEach(function(text) {
+      var span = document.createElement('span');
+      span.className = 'result-pill';
+      span.textContent = text;
+      pillsEl.appendChild(span);
+    });
+
+    if (typeof gtag === 'function') {
+      gtag('event', 'discover_clicked', {
+        city: st.cityKey, mood: st.moodKeys.join("|"), budget: st.budgetKey,
+        audience: st.audience, place: sug.title
+      });
+    }
+  }
+
+  updateNextButtonUI();
+}
+
+/* ── "خيار ثاني" button: shows/hides itself + its ١/٣-style counter.
+   Hidden entirely when there's only one (or zero) matches — no point
+   offering "another option" that doesn't exist. ── */
+function updateNextButtonUI() {
+  var btn = document.getElementById('result-next-btn');
+  var counterEl = document.getElementById('result-next-counter');
+  if (!btn) return;
+  var st = discoverBrowseState;
+  if (!st || st.matches.length <= 1) {
+    btn.style.display = 'none';
+    return;
+  }
+  btn.style.display = '';
+  if (counterEl) counterEl.textContent = (st.index + 1) + '/' + st.matches.length;
+}
+
+var resultNextBtn = document.getElementById('result-next-btn');
+if (resultNextBtn) {
+  resultNextBtn.addEventListener('click', function() {
+    var st = discoverBrowseState;
+    if (!st || st.matches.length <= 1) return;
+    st.index = (st.index + 1) % st.matches.length;
+    if (navigator.vibrate) navigator.vibrate(15);
+
+    /* Brief dip instead of a hard content cut, so the swap reads as
+       intentional. No fake "AI thinking" delay — we already have the
+       data, faking a spinner here would be dishonest AND slow. */
+    var card = document.getElementById('result-card');
+    if (card) card.classList.add('is-swapping');
+    setTimeout(function() {
+      renderResultIntoCard();
+      if (card) card.classList.remove('is-swapping');
+    }, 120);
+
+    if (typeof gtag === 'function') {
+      gtag('event', 'discover_next_option', {
+        index: st.index, mode: st.isTravelMode ? 'travel' : 'local'
+      });
+    }
+  });
+}
 
 /* ══════════════════════════════════════════
    WHATSAPP VIRAL SHARE
@@ -1701,9 +1810,9 @@ document.getElementById('save-wallet-btn').addEventListener('click', function() 
 
   saveToWallet(title, discount, note);
 
-  // Haptic + تغيير حالة الزر
+  // Haptic + تعبئة القلب (حالة محفوظ)
   if (navigator.vibrate) navigator.vibrate([20, 30, 20]);
-  this.innerHTML = `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> ${t('result.saved_to_wallet')}`;
+  this.innerHTML = FAV_HEART_FILLED;
   this.classList.add('saved');
 });
 /* ══════════════════════════════════════════════════════════════
@@ -2024,7 +2133,6 @@ function applyTheme(theme, opts) {
      matches the new theme immediately (they read the live CSS
      tokens themselves — see getSliderTrackColors()) */
   if (budgetSlider) updateBudgetSlider();
-  if (typeof slider !== 'undefined' && slider) updateSlider();
 
   if (!opts.silent && navigator.vibrate) navigator.vibrate(30);
 }
@@ -2049,9 +2157,8 @@ var LANG_KEY = 'talaty_lang';
 
 var I18N = {
   ar: {
-    'discover.logo_badge': '✨ طلعتك — الأردن',
     'discover.hero_title': 'وين تحب<br>تطلع اليوم؟',
-    'discover.hero_sub': '5 أسئلة بس — وأحنا نلاقيلك طلعتك المثالية 🎯',
+    'discover.hero_sub': '3 أسئلة بس — وأحنا نلاقيلك طلعتك المثالية 🎯',
     'discover.toggle_local': 'طلعة محلية',
     'discover.toggle_travel': 'سفر للخارج',
     'discover.search_placeholder': 'ابحث عن مكان أو كود خصم...',
@@ -2069,10 +2176,6 @@ var I18N = {
     'discover.budget_tick_1': 'اقتصادي',
     'discover.budget_tick_2': 'معتدل',
     'discover.budget_tick_3': 'فاخر',
-    'discover.time_question': 'وقت الطلعة؟',
-    'discover.time_morning': 'صباحي',
-    'discover.time_evening': 'مسائي',
-    'discover.time_night': 'سهرة',
     'discover.mood_question': 'كيف مزاجك اليوم؟',
     'discover.mood_adrenaline': 'أدرينالين',
     'discover.mood_relax': 'استرخاء',
@@ -2080,21 +2183,10 @@ var I18N = {
     'discover.mood_cultural': 'ثقافي',
     'discover.mood_romantic': 'رومانسي',
     'discover.mood_adventure': 'مغامرة',
-    'discover.distance_question': 'المسافة المسموحة؟',
-    'discover.distance_unit': 'كيلومتر منك',
-    'discover.distance_tick_1': '1 كم',
-    'discover.distance_tick_25': '25 كم',
-    'discover.distance_tick_50': '50 كم',
     'discover.cta': 'اكتشف طلعتك',
     'discover.loading_data': 'جاري تحميل البيانات...',
     'discover.analyzing': 'جاري التحليل...',
     'discover.footer_hint': 'هذه نسخة أولية — الاقتراحات ستكون ذكية أكثر قريباً 🚀',
-    'discover.view_list': 'عرض القائمة',
-    'discover.view_map': 'عرض الخريطة',
-    'discover.map_hint': '📍 اضغط على أي دبوس لمشاهدة تفاصيل المكان وكود الخصم',
-    'discover.map_empty': 'لا توجد أماكن بإحداثيات على الخريطة بعد — جرّب مدينة أو فلاتر مختلفة',
-    'discover.map_popup_btn': 'شوف التفاصيل والخصم',
-    'discover.map_unavailable': 'الخريطة غير متاحة حالياً — تأكد من اتصالك بالإنترنت',
 
     'splash.title': 'وين بدك تطلع اليوم؟',
     'splash.sub': 'اكتشف أفضل الأماكن والوجهات المخصصة لمزاجك وميزانيتك',
@@ -2178,6 +2270,7 @@ var I18N = {
     'result.no_match_desc': 'لا يوجد تطابق 100% لمعاييرك الدقيقة جداً. جرّب تغيير الميزانية أو الوقت وسيبهرك الذكاء الاصطناعي.',
     'result.no_match_tip': 'الفلتر الصارم يضمن لك دقة أعلى في التوصيات',
     'result.badge_default': '🎯 اقتراحك المثالي',
+    'result.next_btn': 'خيار ثاني',
     'result.badge_travel': '✈️ وجهة سفرك المثالية',
     'result.badge_search': '🔍 نتيجة بحثك',
     'result.discount_label': '🎁 كود الخصم الحصري',
@@ -2210,9 +2303,8 @@ var I18N = {
   },
 
   en: {
-    'discover.logo_badge': '✨ Talaty — Jordan',
     'discover.hero_title': 'Where do you<br>want to go today?',
-    'discover.hero_sub': "Just 5 questions — we'll find your perfect outing 🎯",
+    'discover.hero_sub': "Just 3 questions — we'll find your perfect outing 🎯",
     'discover.toggle_local': 'Local Outing',
     'discover.toggle_travel': 'Travel Abroad',
     'discover.search_placeholder': 'Search a place or discount code...',
@@ -2230,10 +2322,6 @@ var I18N = {
     'discover.budget_tick_1': 'Budget',
     'discover.budget_tick_2': 'Moderate',
     'discover.budget_tick_3': 'Luxury',
-    'discover.time_question': 'What time?',
-    'discover.time_morning': 'Morning',
-    'discover.time_evening': 'Evening',
-    'discover.time_night': 'Night Out',
     'discover.mood_question': "What's your mood today?",
     'discover.mood_adrenaline': 'Adrenaline',
     'discover.mood_relax': 'Relaxing',
@@ -2241,21 +2329,10 @@ var I18N = {
     'discover.mood_cultural': 'Cultural',
     'discover.mood_romantic': 'Romantic',
     'discover.mood_adventure': 'Adventure',
-    'discover.distance_question': 'Allowed distance?',
-    'discover.distance_unit': 'km from you',
-    'discover.distance_tick_1': '1 km',
-    'discover.distance_tick_25': '25 km',
-    'discover.distance_tick_50': '50 km',
     'discover.cta': 'Discover Your Outing',
     'discover.loading_data': 'Loading data...',
     'discover.analyzing': 'Analyzing...',
     'discover.footer_hint': "This is an early version — suggestions will get smarter soon 🚀",
-    'discover.view_list': 'List View',
-    'discover.view_map': 'Map View',
-    'discover.map_hint': '📍 Tap any pin to see place details and its discount code',
-    'discover.map_empty': 'No places with coordinates on the map yet — try a different city or filters',
-    'discover.map_popup_btn': 'See details & discount',
-    'discover.map_unavailable': 'Map unavailable right now — check your internet connection',
 
     'splash.title': 'Where do you want to go today?',
     'splash.sub': 'Discover the best places and destinations tailored to your mood and budget',
@@ -2339,6 +2416,7 @@ var I18N = {
     'result.no_match_desc': "No 100% match for your very specific criteria. Try changing the budget or time and let the AI surprise you.",
     'result.no_match_tip': 'Strict filtering guarantees more accurate recommendations',
     'result.badge_default': '🎯 Your Perfect Match',
+    'result.next_btn': 'Another Option',
     'result.badge_travel': '✈️ Your Perfect Destination',
     'result.badge_search': '🔍 Your Search Result',
     'result.discount_label': '🎁 Exclusive Discount Code',
@@ -2924,12 +3002,14 @@ syncProfileUI();
 
     if (copyBtn) { copyBtn.textContent = t('result.copy_btn'); copyBtn.classList.remove('copied'); }
 
+    /* v14 — paint hero image (or gradient+emoji) + reset heart */
+    applyResultImage(item, isTravel);
+    resetFavButton();
+
     if (saveBtn) {
       saveBtn.dataset.title    = isTravel ? ((item.flag || '✈️') + ' ' + item.title) : item.title;
       saveBtn.dataset.discount = item.discount || '';
       saveBtn.dataset.note     = item.discountNote || '';
-      saveBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><rect x="1" y="4" width="22" height="16" rx="3" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M1 10h22" stroke="currentColor" stroke-width="1.8"/><circle cx="7.5" cy="15" r="1.2" fill="currentColor"/><path d="M12 15h5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg> ' + t('result.save_wallet_btn');
-      saveBtn.classList.remove('saved');
     }
 
     var waBtn = document.getElementById('whatsapp-share-btn');
@@ -3019,8 +3099,6 @@ syncProfileUI();
   input.addEventListener('input', function () {
     var q = input.value;
     clearBtn.hidden = q.length === 0;
-    /* Map View hook: live-filter the pins as the user types */
-    if (typeof window.talatyMapOnSearch === 'function') window.talatyMapOnSearch(q);
     clearTimeout(debounceTimer);
     debounceTimer = setTimeout(function () {
       renderResults(findMatches(q), q);
@@ -3034,11 +3112,10 @@ syncProfileUI();
     listEl.innerHTML = '';
     input.focus();
     if (navigator.vibrate) navigator.vibrate(8);
-    if (typeof window.talatyMapOnSearch === 'function') window.talatyMapOnSearch('');
   });
 
-  /* ── Public export: lets Map View popups open the exact same
-     bottom sheet the search results use (single code path). ── */
+  /* ── Public export: opens the bottom sheet for a given place id
+     from anywhere in the app (kept generic/reusable). ── */
   window.talatyOpenPlaceSheet = function(placeId) {
     var found = (Array.isArray(places) ? places : []).filter(function(p){ return p.id === placeId; })[0];
     if (found) openSearchResult('local', found);
@@ -3070,200 +3147,3 @@ syncProfileUI();
   } catch (e) {}
 })();
 
-
-/* ╔══════════════════════════════════════════════════════════════╗
-   ║  MAP VIEW v1.0 — Leaflet integration (Day 3 scaling plan)     ║
-   ║  List ⇄ Map toggle on the discover screen (local mode only). ║
-   ║  Fully additive: zero changes to PapaParse init, the Dual    ║
-   ║  Engine, Gamification, or Bottom Nav. If Leaflet fails to    ║
-   ║  load (offline/CDN blocked) the toggle hides itself and the  ║
-   ║  app behaves exactly as before.                              ║
-   ╚══════════════════════════════════════════════════════════════╝ */
-(function initMapView() {
-  var AMMAN_CENTER = [31.9522, 35.2332];
-
-  var toggleWrap = document.getElementById('view-toggle-wrap');
-  var listBtn    = document.getElementById('view-list-btn');
-  var mapBtn     = document.getElementById('view-map-btn');
-  var mapSection = document.getElementById('map-section');
-  var mapEl      = document.getElementById('talaty-map');
-  var emptyHint  = document.getElementById('map-empty-hint');
-  var screenEl   = document.getElementById('screen-discover');
-  if (!toggleWrap || !mapEl || !screenEl) return;   /* markup missing → skip silently */
-
-  var map = null;              /* created lazily on first Map View open */
-  var markersLayer = null;     /* single layer group → trivial clear/redraw */
-  var isMapView = false;
-  var searchQuery = '';
-
-  /* ── Lazy init: Leaflet is only instantiated the first time the
-     user opens Map View, so users who never touch it pay zero cost. ── */
-  function ensureMap() {
-    if (map) return true;
-    if (typeof L === 'undefined') {
-      /* CDN blocked / offline — degrade gracefully */
-      showToast(t('discover.map_unavailable'), 'danger', 2800);
-      return false;
-    }
-    map = L.map(mapEl, {
-      center: AMMAN_CENTER,
-      zoom: 12,
-      zoomControl: true,
-      attributionControl: true
-    });
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 19,
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>'
-    }).addTo(map);
-    markersLayer = L.layerGroup().addTo(map);
-    return true;
-  }
-
-  /* ── The lenient "map filter": city (always) + selected moods (OR)
-     + live search text. Budget/time/distance intentionally excluded —
-     on a map the user wants to SEE what's around; over-filtering
-     would leave it empty most of the time. ── */
-  function getMapFilteredPlaces() {
-    var all = Array.isArray(places) ? places : [];
-    var cityBtn  = document.querySelector('[data-group="city"].active');
-    var cityKey  = cityBtn ? normaliseStr(cityBtn.dataset.val) : null;
-    var moodBtns = document.querySelectorAll('[data-group="mood"].active');
-    var nMoods   = Array.prototype.map.call(moodBtns, function(m) {
-      return normaliseStr(MOOD_SYNONYMS[normaliseStr(m.dataset.val)] || m.dataset.val);
-    });
-    var q = normaliseStr(searchQuery).toLowerCase();
-
-    return all.filter(function(p) {
-      if (p.lat === null || p.lng === null || p.lat === undefined || p.lng === undefined) return false;
-
-      if (cityKey) {
-        var cityOk = p.city.some(function(c) { return normaliseStr(c) === cityKey; });
-        if (!cityOk) return false;
-      }
-      if (nMoods.length > 0) {
-        var moodOk = p.mood.some(function(m) {
-          return nMoods.indexOf(normaliseStr(MOOD_SYNONYMS[normaliseStr(m)] || m)) !== -1;
-        });
-        if (!moodOk) return false;
-      }
-      if (q.length >= 2) {
-        var hit = (p.title && normaliseStr(p.title).toLowerCase().indexOf(q) !== -1) ||
-                  (p.desc  && normaliseStr(p.desc).toLowerCase().indexOf(q)  !== -1);
-        if (!hit) return false;
-      }
-      return true;
-    });
-  }
-
-  /* ── Core API (per spec): clear old markers, pin the new set ── */
-  function updateMapMarkers(filteredPlaces) {
-    if (!map || !markersLayer) return;
-    markersLayer.clearLayers();
-
-    var bounds = [];
-    filteredPlaces.forEach(function(p) {
-      var marker = L.marker([p.lat, p.lng]);
-      /* Popup: title + a tiny CTA that opens the existing bottom sheet.
-         textContent-based build (no string-concat HTML) so a malicious
-         place title in the sheet can never inject markup. */
-      var wrap  = document.createElement('div');
-      var title = document.createElement('div');
-      title.className = 'tl-popup-title';
-      title.textContent = p.title;
-      var btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = 'tl-popup-btn';
-      btn.textContent = t('discover.map_popup_btn');
-      btn.addEventListener('click', function() {
-        if (typeof window.talatyOpenPlaceSheet === 'function') window.talatyOpenPlaceSheet(p.id);
-        if (typeof gtag === 'function') gtag('event', 'map_pin_opened', { place: p.title });
-      });
-      wrap.appendChild(title);
-      wrap.appendChild(btn);
-      marker.bindPopup(wrap, { closeButton: true, maxWidth: 220 });
-      markersLayer.addLayer(marker);
-      bounds.push([p.lat, p.lng]);
-    });
-
-    if (emptyHint) emptyHint.hidden = bounds.length > 0;
-
-    if (bounds.length === 1)      map.setView(bounds[0], 15);
-    else if (bounds.length > 1)   map.fitBounds(bounds, { padding: [36, 36], maxZoom: 15 });
-    else                          map.setView(AMMAN_CENTER, 12);
-  }
-  /* Public export — other modules (or the console) can push a
-     custom filtered set without knowing map internals. */
-  window.updateMapMarkers = updateMapMarkers;
-
-  function refreshMap() {
-    if (!isMapView || !map) return;
-    updateMapMarkers(getMapFilteredPlaces());
-  }
-
-  /* ── View switching ── */
-  function setView(mode) {
-    var wantMap = (mode === 'map');
-    if (wantMap && !ensureMap()) return;   /* Leaflet unavailable → stay in list */
-    isMapView = wantMap;
-
-    toggleWrap.classList.toggle('mode-map', wantMap);
-    listBtn.classList.toggle('active', !wantMap);
-    mapBtn.classList.toggle('active', wantMap);
-    listBtn.setAttribute('aria-selected', String(!wantMap));
-    mapBtn.setAttribute('aria-selected', String(wantMap));
-
-    screenEl.classList.toggle('map-view', wantMap);
-    if (mapSection) mapSection.hidden = !wantMap;
-
-    if (wantMap) {
-      /* CRITICAL: the container was display:none while hidden, so
-         Leaflet measured it at 0×0. invalidateSize() after it becomes
-         visible re-measures and repaints — without this the map
-         renders as grey tiles / a single corner. */
-      requestAnimationFrame(function() {
-        map.invalidateSize();
-        refreshMap();
-      });
-      if (typeof gtag === 'function') gtag('event', 'map_view_opened');
-    }
-    if (navigator.vibrate) navigator.vibrate(10);
-  }
-
-  listBtn.addEventListener('click', function() { setView('list'); });
-  mapBtn.addEventListener('click',  function() { setView('map');  });
-
-  /* ── Live re-filtering hooks (spec: "every time the user filters
-     places or searches") — city pills & mood buttons already exist;
-     we listen passively so their own handlers stay untouched. ── */
-  document.querySelectorAll('[data-group="city"], [data-group="mood"]').forEach(function(btn) {
-    btn.addEventListener('click', function() {
-      /* run after the original handler has toggled .active */
-      setTimeout(refreshMap, 0);
-    });
-  });
-
-  /* Search hook — called by the smart-search input handler */
-  window.talatyMapOnSearch = function(q) {
-    searchQuery = q || '';
-    refreshMap();
-  };
-
-  /* ── Travel mode has no local coordinates: hide the toggle and
-     force back to List View whenever the user switches engines. ── */
-  var localModeBtn  = document.getElementById('toggle-local');
-  var travelModeBtn = document.getElementById('toggle-travel');
-  function syncToggleVisibility() {
-    var travelActive = travelModeBtn && travelModeBtn.classList.contains('active');
-    toggleWrap.style.display = travelActive ? 'none' : '';
-    if (travelActive && isMapView) setView('list');
-  }
-  if (localModeBtn)  localModeBtn.addEventListener('click',  function(){ setTimeout(syncToggleVisibility, 0); });
-  if (travelModeBtn) travelModeBtn.addEventListener('click', function(){ setTimeout(syncToggleVisibility, 0); });
-  syncToggleVisibility();
-
-  /* Theme flips repaint tiles via CSS only — but a resize while the
-     map is hidden (rotation, keyboard) needs a re-measure on return. */
-  window.addEventListener('resize', function() {
-    if (isMapView && map) map.invalidateSize();
-  });
-})();

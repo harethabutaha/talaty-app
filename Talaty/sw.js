@@ -10,15 +10,15 @@
 
 'use strict';
 
-var CACHE_VERSION = 'talaty-v12';
+var CACHE_VERSION = 'talaty-v14';
 
 /* Core shell — same-origin, MUST all cache or install fails (correct:
    a half-cached app shell is worse than retrying the install). */
 var SHELL_URLS = [
   './',
   './index.html',
-  './style.css?v=12',
-  './script.js?v=12',
+  './style.css?v=14',
+  './script.js?v=14',
   './manifest.json'
 ];
 
@@ -26,9 +26,7 @@ var SHELL_URLS = [
    install time we must NOT brick the whole SW install; the browser
    will simply fetch these from network (and runtime-cache them) later. */
 var CDN_URLS = [
-  'https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js',
-  'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css',
-  'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'
+  'https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js'
 ];
 
 var PASSTHROUGH_HOSTS = [

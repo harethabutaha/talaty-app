@@ -834,6 +834,108 @@ input[type="range"]::-moz-range-thumb {
   to   { opacity: 1; transform: translateY(0); }
 }
 
+/* ═══════════════════════════════════════════════════════════
+   v14 — RESULT HERO IMAGE + SAVE HEART
+   Brings the result card to life. Shows a real photo when the
+   place has an image; otherwise a branded gradient + big emoji.
+═══════════════════════════════════════════════════════════ */
+.result-hero {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  margin-bottom: 16px;
+  background: linear-gradient(135deg, var(--ocean-sky) 0%, var(--teal) 100%);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+/* Fallback emoji — visible only while there is no loaded image */
+.result-hero-emoji {
+  font-size: 60px;
+  line-height: 1;
+  filter: drop-shadow(0 4px 10px rgba(0,0,0,0.25));
+  transition: opacity var(--dur-med) var(--ease-out), transform var(--dur-med) var(--ease-spring);
+}
+.result-hero.has-img .result-hero-emoji { opacity: 0; transform: scale(0.8); }
+/* Real image — hidden until it successfully loads (no broken-icon flash) */
+.result-hero-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity var(--dur-slow) var(--ease-out);
+}
+.result-hero.has-img .result-hero-img {
+  opacity: 1;
+  animation: hero-kenburns 14s ease-out both;
+}
+@keyframes hero-kenburns {
+  from { transform: scale(1.08); }
+  to   { transform: scale(1); }
+}
+/* Bottom scrim — keeps future overlaid text legible over any photo */
+.result-hero-scrim {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(to top, rgba(0,0,0,0.28) 0%, transparent 45%);
+  opacity: 0;
+  transition: opacity var(--dur-slow) var(--ease-out);
+}
+.result-hero.has-img .result-hero-scrim { opacity: 1; }
+
+/* Save heart — frosted circle, top-start corner (top-right in RTL) */
+.result-fav-btn {
+  position: absolute;
+  top: 12px;
+  inset-inline-start: 12px;
+  z-index: 2;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #fff;
+  background: rgba(20, 24, 40, 0.35);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 2px 10px rgba(0,0,0,0.20);
+  transition: transform var(--dur-fast) var(--ease-spring), background var(--dur-fast);
+  -webkit-tap-highlight-color: transparent;
+}
+.result-fav-btn:hover  { background: rgba(20, 24, 40, 0.55); }
+.result-fav-btn:active { transform: scale(0.88); }
+.result-fav-btn .fav-heart {
+  width: 22px;
+  height: 22px;
+  transition: transform var(--dur-fast) var(--ease-spring);
+}
+.result-fav-btn.saved {
+  color: #FF4D6D;
+  background: rgba(255,255,255,0.92);
+}
+.result-fav-btn.saved .fav-heart { animation: heart-pop 0.4s var(--ease-spring); }
+@keyframes heart-pop {
+  0%   { transform: scale(0.6); }
+  55%  { transform: scale(1.25); }
+  100% { transform: scale(1); }
+}
+/* Reveal the hero as part of the card entrance sequence */
+.result-card.show .result-hero { animation: slide-up 0.30s var(--ease-out) 0.02s both; }
+
+@media (prefers-reduced-motion: reduce) {
+  .result-hero.has-img .result-hero-img { animation: none; }
+  .result-fav-btn.saved .fav-heart { animation: none; }
+}
+
 .result-eyebrow {
   display: flex;
   align-items: center;
@@ -989,63 +1091,33 @@ input[type="range"]::-moz-range-thumb {
   margin-top: 10px;
 }
 
-/* ===== WHATSAPP SHARE BUTTON ===== */
+/* ===== WHATSAPP SHARE BUTTON — v14 secondary (app identity, not
+   WhatsApp green). Sits under the primary "go there" button as a
+   clearly lighter action, so there is one hero CTA per card. ===== */
 .whatsapp-btn {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 9px;
   width: 100%;
-  padding: 14px 16px;
+  padding: 13px 16px;
   border-radius: var(--r-lg);
-  border: none;
-  background: #25D366;
-  color: #fff;
+  border: 1.5px solid var(--teal);
+  background: transparent;
+  color: var(--teal);
   font-family: 'Cairo', sans-serif;
   font-size: 14px;
   font-weight: 700;
   cursor: pointer;
   text-decoration: none;
-  /* soft shadow in WhatsApp green */
-  box-shadow: 0 4px 16px rgba(37, 211, 102, 0.30);
   transition:
     transform  var(--dur-fast) var(--ease-spring),
-    box-shadow var(--dur-fast),
     background var(--dur-fast),
-    filter     var(--dur-fast);
+    color      var(--dur-fast);
   -webkit-tap-highlight-color: transparent;
-  position: relative;
-  overflow: hidden;
 }
-
-/* Shine sweep — same pattern as CTA button */
-.whatsapp-btn::before {
-  content: '';
-  position: absolute;
-  top: 0; left: -100%;
-  width: 55%;
-  height: 100%;
-  background: linear-gradient(
-    120deg,
-    transparent 0%,
-    rgba(255,255,255,0.22) 50%,
-    transparent 100%
-  );
-  pointer-events: none;
-  border-radius: inherit;
-  animation: btn-shine 4s ease-in-out infinite 1.5s;
-}
-
-.whatsapp-btn:hover {
-  background: #1EBE5A;
-  transform: translateY(-2px);
-  box-shadow: 0 8px 28px rgba(37, 211, 102, 0.40);
-  filter: brightness(1.04);
-}
-.whatsapp-btn:active {
-  transform: scale(0.97) translateY(0);
-  box-shadow: 0 2px 8px rgba(37, 211, 102, 0.25);
-}
+.whatsapp-btn:hover  { background: var(--teal); color: #fff; }
+.whatsapp-btn:active { transform: scale(0.97); }
 
 .wa-icon {
   width: 20px;
@@ -1054,10 +1126,6 @@ input[type="range"]::-moz-range-thumb {
   transition: transform var(--dur-fast) var(--ease-spring);
 }
 .whatsapp-btn:hover .wa-icon { transform: scale(1.15) rotate(-5deg); }
-
-@media (prefers-reduced-motion: reduce) {
-  .whatsapp-btn::before { animation: none; }
-}
 
 /* ===== WALLET CARDS LIST =====
    FIX (this round): same double-padding bug as .settings-body/.pf-wrap
@@ -2311,6 +2379,12 @@ input[type="range"]::-moz-range-thumb {
   margin: 0;
 }
 .ch-location-chip {
+  /* Hidden per product decision — the hero already says "3 questions"
+     without needing to name a default city. DOM node stays (not
+     deleted) so the scene-switching JS that writes its textContent
+     on every city change keeps working with zero risk of a null
+     reference — it just writes into an invisible element now. */
+  display: none;
   align-self: flex-start;
   margin-top: 8px;
   padding: 5px 13px;
@@ -2938,164 +3012,53 @@ body:not(.travel-theme) {
 }
 
 /* ══════════════════════════════════════════════════════════════
-   MAP VIEW v1.0 — Leaflet integration (Day 3)
-   Toggle between List View and Map View on the discover screen.
-   Design goals: Premium Light Theme match, theme-aware (dark mode
-   repaints via existing tokens), and a hard z-index ceiling so
-   Leaflet's internal panes (which go up to z-index 1000) can NEVER
-   overlap the Bottom Nav / Bottom Sheet / Toast.
+   "خيار ثاني" — Next Option button (result card)
+   Lets the user browse other matches instead of being stuck with
+   a single recommendation. Deliberately secondary in visual weight
+   (outline style) so it never competes with the "🎯 perfect match"
+   promise above it — it reads as "see another great pick", not
+   "this one was wrong". Counter (١/٣) gives instant clarity on how
+   many options exist — 5-second comprehension, no explanation needed.
 ══════════════════════════════════════════════════════════════ */
-
-/* ── List ⇄ Map glassmorphism segmented toggle ── */
-.view-toggle-wrap {
-  position: relative;
+.result-next-btn {
   display: flex;
-  margin-top: 12px;
-  padding: 4px;
-  border-radius: var(--r-full);
-  background: rgba(var(--surface-rgb), 0.60);
-  backdrop-filter: blur(14px) saturate(1.5);
-  -webkit-backdrop-filter: blur(14px) saturate(1.5);
-  border: 1px solid var(--border);
-  box-shadow: var(--sh-sm);
-}
-.view-toggle-thumb {
-  position: absolute;
-  z-index: 1;
-  top: 4px;
-  right: 4px;              /* RTL: list is first (right side) */
-  width: calc(50% - 4px);
-  height: calc(100% - 8px);
-  background: var(--ocean-gradient);
-  border-radius: var(--r-full);
-  box-shadow: 0 3px 12px var(--ocean-shadow);
-  transition: transform var(--dur-med) var(--ease-spring);
-}
-/* When map view active, slide thumb to the left half (RTL) */
-.view-toggle-wrap.mode-map .view-toggle-thumb { transform: translateX(-100%); }
-/* LTR (English UI): thumb starts left, slides right */
-html[dir="ltr"] .view-toggle-thumb { right: auto; left: 4px; }
-html[dir="ltr"] .view-toggle-wrap.mode-map .view-toggle-thumb { transform: translateX(100%); }
-
-.view-toggle-btn {
-  position: relative; z-index: 2;
-  flex: 1;
-  display: flex; align-items: center; justify-content: center; gap: 7px;
-  padding: 11px 8px;
-  border: none; background: transparent;
-  font-family: 'Cairo', sans-serif;
-  font-size: 13px; font-weight: 800;
-  color: var(--text-2);
-  cursor: pointer;
-  border-radius: var(--r-full);
-  transition: color var(--dur-med) ease;
-  -webkit-tap-highlight-color: transparent;
-}
-.view-toggle-btn svg { width: 17px; height: 17px; flex-shrink: 0; }
-.view-toggle-btn.active { color: #fff; }
-.view-toggle-btn:active { transform: scale(0.97); }
-
-/* ── Map card + container ── */
-.map-card {
-  position: relative;
-  border-radius: var(--r-xl);
-  overflow: hidden;                 /* clips Leaflet's square tiles to our rounded corners */
-  border: 1px solid var(--border);
-  box-shadow: var(--sh-md);
-  background: var(--surface);
-  /* CRITICAL z-index containment: isolation creates a new stacking
-     context, so Leaflet's internal z-index:1000 panes are trapped
-     inside this card and mathematically cannot rise above the
-     Bottom Nav (z:100+), Bottom Sheet (z:999+), or Toast (z:9999). */
-  isolation: isolate;
-  z-index: 1;
-}
-#talaty-map {
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
   width: 100%;
-  /* Main viewing area: viewport minus (topbar + travel toggle +
-     search + view toggle + city pills ≈ 400px) minus bottom nav.
-     dvh handles mobile browser chrome; vh fallback for old engines. */
-  height: calc(100vh  - var(--nav-h) - 430px);
-  height: calc(100dvh - var(--nav-h) - 430px);
-  min-height: 300px;
-  max-height: 560px;
-  background: var(--surface-2);     /* visible while tiles stream in */
-}
-.map-hint {
-  margin-top: 10px;
-  font-size: 11.5px;
-  color: var(--muted);
-  text-align: center;
-  line-height: 1.6;
-}
-.map-empty-hint {
-  position: absolute; inset: 0;
-  display: flex; align-items: center; justify-content: center;
-  padding: 24px; text-align: center;
-  font-size: 13px; font-weight: 700; color: var(--text-2);
-  background: rgba(var(--surface-rgb), 0.82);
-  backdrop-filter: blur(4px);
-  z-index: 2;                       /* above tiles, still inside the isolated card */
-}
-.map-empty-hint[hidden] { display: none; }
-
-/* ── Hide the non-map filter sections while Map View is active.
-   City pills + search stay visible: they're the natural map filters.
-   The tall cinematic header + step dots also give way — the map is
-   the main viewing area in this mode (per Day-3 spec). ── */
-#screen-discover.map-view #budget-filter-section,
-#screen-discover.map-view #time-filter-section,
-#screen-discover.map-view #mood-filter-section,
-#screen-discover.map-view #distance-filter-section,
-#screen-discover.map-view .cta-wrap,
-#screen-discover.map-view .footer-hint,
-#screen-discover.map-view .cinematic-header,
-#screen-discover.map-view .steps {
-  display: none;
-}
-
-/* ── Leaflet popup re-skinned to the app's design language ── */
-.leaflet-popup-content-wrapper {
-  border-radius: 14px !important;
-  box-shadow: var(--sh-md) !important;
-  background: var(--surface) !important;
-  color: var(--text) !important;
-  font-family: 'Cairo', sans-serif !important;
-}
-.leaflet-popup-content { margin: 12px 14px !important; direction: rtl; text-align: right; }
-html[dir="ltr"] .leaflet-popup-content { direction: ltr; text-align: left; }
-.leaflet-popup-tip { background: var(--surface) !important; }
-.tl-popup-title { font-size: 13.5px; font-weight: 800; color: var(--text); margin-bottom: 8px; line-height: 1.4; }
-.tl-popup-btn {
-  display: inline-flex; align-items: center; gap: 5px;
-  padding: 7px 14px; border: none; border-radius: var(--r-full);
-  background: var(--ocean-gradient); color: #fff;
-  font-family: 'Cairo', sans-serif; font-size: 11.5px; font-weight: 800;
-  cursor: pointer; box-shadow: 0 4px 12px var(--ocean-shadow);
+  margin-top: 12px;
+  padding: 11px;
+  border-radius: var(--r-lg);
+  border: 1.5px solid var(--ocean-sky);
+  background: var(--ocean-sky-lt);
+  color: var(--ocean-sky);
+  font-family: 'Cairo', sans-serif;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all var(--dur-fast) var(--ease-spring);
   -webkit-tap-highlight-color: transparent;
 }
-.tl-popup-btn:active { transform: scale(0.95); }
-.leaflet-container a.leaflet-popup-close-button { color: var(--muted) !important; }
+.result-next-btn svg { width: 15px; height: 15px; flex-shrink: 0; transition: transform 0.35s var(--ease-spring); }
+.result-next-btn:hover  { background: var(--ocean-sky); color: #fff; }
+.result-next-btn:active { transform: scale(0.96); }
+.result-next-btn:active svg { transform: rotate(180deg); }
+.result-next-counter {
+  font-size: 11px;
+  font-weight: 700;
+  opacity: 0.75;
+  direction: ltr; /* "2/4" always reads left-to-right, even in the Arabic UI */
+}
 
-/* Attribution bar — keep it legible but subtle on both themes */
-.leaflet-control-attribution {
-  background: rgba(var(--surface-rgb), 0.75) !important;
-  color: var(--muted) !important;
-  font-size: 9px !important;
-}
-.leaflet-control-attribution a { color: var(--text-2) !important; }
-
-/* ── Dark mode: dim + invert the light OSM tiles so the map doesn't
-   blind users; controls/popups already repaint via tokens. ── */
-html[data-theme="dark"] .leaflet-tile {
-  filter: brightness(0.6) invert(1) contrast(3) hue-rotate(200deg) saturate(0.3) brightness(0.7);
-}
-html[data-theme="dark"] .leaflet-control-zoom a {
-  background: var(--surface) !important;
-  color: var(--text) !important;
-  border-color: var(--border) !important;
-}
+/* Brief content swap feedback when "Next" is clicked — a brief dip
+   instead of a hard cut, so the change reads as intentional, not glitchy. */
+.result-card.is-swapping .result-title,
+.result-card.is-swapping .result-desc,
+.result-card.is-swapping .result-pills { opacity: 0.35; transition: opacity 0.12s ease; }
+.result-card .result-title,
+.result-card .result-desc,
+.result-card .result-pills { transition: opacity 0.15s ease; }
 
 @media (prefers-reduced-motion: reduce) {
-  .view-toggle-thumb { transition: none; }
+  .result-next-btn:active svg { transform: none; }
 }
